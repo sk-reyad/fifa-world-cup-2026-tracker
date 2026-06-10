@@ -1,0 +1,9 @@
+{
+  "name": "FIFA World Cup 2026 Tracker BST",
+  "short_name": "WC2026 BST",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#06120d",
+  "theme_color": "#21d07a",
+  "icons": []
+}
