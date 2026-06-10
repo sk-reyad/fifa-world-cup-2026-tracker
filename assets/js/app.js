@@ -341,6 +341,25 @@
     UI.qs('#refreshLiveBtn').addEventListener('click', () => fetchLiveData(true));
   }
 
+
+  function updateDateLabels(fixture) {
+    if (!fixture || !fixture.kickoff) return;
+    const date = new Date(fixture.kickoff);
+    if (Number.isNaN(date.getTime())) return;
+    fixture.dateLabel = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Dhaka',
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(date);
+    fixture.timeLabel = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Dhaka',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(date);
+  }
+
   function normalizeName(name) {
     return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
   }
@@ -349,11 +368,12 @@
     if (!live || !live.homeTeam || !live.awayTeam) return false;
     const liveHome = normalizeName(live.homeTeam);
     const liveAway = normalizeName(live.awayTeam);
-    const target = state.fixtures.find((fixture) =>
-      normalizeName(fixture.homeTeam) === liveHome && normalizeName(fixture.awayTeam) === liveAway
-    ) || state.fixtures.find((fixture) =>
-      normalizeName(fixture.homeTeam) === liveAway && normalizeName(fixture.awayTeam) === liveHome
-    );
+    const target = (live.matchNumber ? state.fixtures.find((fixture) => Number(fixture.matchNumber) === Number(live.matchNumber)) : null)
+      || state.fixtures.find((fixture) =>
+        normalizeName(fixture.homeTeam) === liveHome && normalizeName(fixture.awayTeam) === liveAway
+      ) || state.fixtures.find((fixture) =>
+        normalizeName(fixture.homeTeam) === liveAway && normalizeName(fixture.awayTeam) === liveHome
+      );
     if (!target) return false;
 
     const sameDirection = normalizeName(target.homeTeam) === liveHome;
@@ -363,8 +383,22 @@
       target.homeScore = sameDirection ? live.homeScore : live.awayScore;
       target.awayScore = sameDirection ? live.awayScore : live.homeScore;
     }
-    if (live.kickoff) target.apiKickoff = live.kickoff;
-    if (live.stadium) target.apiVenue = [live.stadium, live.city, live.country].filter(Boolean).join(', ');
+    if (live.matchNumber && Number(target.matchNumber) === Number(live.matchNumber)) {
+      if (live.homeTeam && (live.homeTeamConfirmed || String(target.homeTeam || '').toLowerCase().includes('winner') || String(target.homeTeam || '').toLowerCase().includes('runner') || String(target.homeTeam || '').toLowerCase().includes('3rd'))) target.homeTeam = live.homeTeam;
+      if (live.awayTeam && (live.awayTeamConfirmed || String(target.awayTeam || '').toLowerCase().includes('winner') || String(target.awayTeam || '').toLowerCase().includes('runner') || String(target.awayTeam || '').toLowerCase().includes('3rd'))) target.awayTeam = live.awayTeam;
+      target.homeFlag = state.flags[target.homeTeam] || target.homeFlag;
+      target.awayFlag = state.flags[target.awayTeam] || target.awayFlag;
+    }
+    if (live.kickoff) {
+      target.kickoff = live.kickoff;
+      updateDateLabels(target);
+    }
+    if (live.stadium) {
+      target.stadium = live.stadium;
+      target.city = live.city || target.city;
+      target.country = live.country || target.country;
+      target.apiVenue = [live.stadium, live.city, live.country].filter(Boolean).join(', ');
+    }
     return true;
   }
 
@@ -380,7 +414,7 @@
       }
       let merged = 0;
       payload.fixtures.forEach((fixture) => { if (mergeLiveFixture(fixture)) merged += 1; });
-      state.apiMode = `Sportmonks connected (${merged} matches synced)`;
+      state.apiMode = `${payload.provider || 'Live API'} connected (${merged} matches synced)`;
       state.lastLiveSync = new Date();
       if (statusEl) statusEl.textContent = `Data mode: ${state.apiMode}`;
       renderAll();

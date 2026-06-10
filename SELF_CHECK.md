@@ -48,3 +48,12 @@ Checked on: 10 June 2026
 
 - Browser-level visual testing was attempted, but the container blocks launching local pages through Chromium. Static code, data counts and JavaScript syntax were still checked.
 - Browser notifications are reliable while the page/browser is open. Full background notifications need a deeper PWA/service-worker setup.
+
+
+## Free API migration recheck
+
+- Replaced paid Sportmonks proxy with free worldcup26.ir proxy.
+- Kept fallback schedule so the site does not break if the free API fails.
+- Added match-number based merging so knockout placeholders can update when the API fills teams.
+- Kept favourite team, today matches, countdowns, standings and full schedule intact.
+- Removed the need for paid Sportmonks environment variables.

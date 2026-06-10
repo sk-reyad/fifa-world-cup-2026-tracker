@@ -39,7 +39,8 @@
   }
 
   function fixtureVenue(fixture) {
-    return `${fixture.stadium}, ${fixture.city}, ${fixture.country}`;
+    if (fixture.apiVenue) return fixture.apiVenue;
+    return [fixture.stadium, fixture.city, fixture.country].filter(Boolean).join(', ');
   }
 
   function formatDateTime(fixture) {

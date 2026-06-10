@@ -13,7 +13,7 @@ window.WC_FALLBACK_DATA = {
       "England",
       "Portugal"
     ],
-    "sportmonksDefaultSeasonId": "23706"
+    "freeApiProvider": "worldcup26.ir"
   },
   "groups": {
     "A": [

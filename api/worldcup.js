@@ -1,229 +1,291 @@
-const DEFAULT_BASE = 'https://api.sportmonks.com/v3/football';
-const DEFAULT_SEASON_ID = '26618';
-const DEFAULT_LEAGUE_ID = '732';
+const DEFAULT_BASE = 'https://worldcup26.ir';
+const DEFAULT_TIMEOUT_MS = 10000;
+
+function asArray(payload, keys = []) {
+  if (Array.isArray(payload)) return payload;
+  for (const key of keys) {
+    if (Array.isArray(payload?.[key])) return payload[key];
+  }
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.result)) return payload.result;
+  return [];
+}
 
 function asNumber(value) {
-  if (value === null || value === undefined || value === '') return null;
+  if (value === null || value === undefined || value === '' || value === 'null') return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 }
 
-function pickName(entity) {
-  return entity?.name || entity?.display_name || entity?.common_name || entity?.short_code || null;
+function clean(value) {
+  if (value === null || value === undefined) return null;
+  const text = String(value).trim();
+  if (!text || text.toLowerCase() === 'null' || text.toLowerCase() === 'undefined') return null;
+  return text;
 }
 
-function pickParticipant(fixture, side) {
-  const participants = fixture.participants || fixture.teams || [];
-  const direct = participants.find((p) => String(p?.meta?.location || p?.location || p?.type || '').toLowerCase() === side);
-  if (direct) return direct;
-  if (side === 'home') return participants[0] || null;
-  return participants[1] || null;
+function boolish(value) {
+  const text = String(value ?? '').trim().toLowerCase();
+  return ['true', '1', 'yes', 'finished', 'ft'].includes(text);
 }
 
-function scoreFromScores(fixture, participantId) {
-  const scores = fixture.scores || [];
-  const preferred = scores
-    .filter((item) => !participantId || item.participant_id === participantId || item.team_id === participantId)
-    .sort((a, b) => {
-      const aDesc = String(a.description || a.type?.name || '').toLowerCase();
-      const bDesc = String(b.description || b.type?.name || '').toLowerCase();
-      const rank = (v) => v.includes('current') ? 4 : v.includes('full') ? 3 : v.includes('2nd') ? 2 : v.includes('1st') ? 1 : 0;
-      return rank(bDesc) - rank(aDesc);
-    })[0];
-
-  const score = preferred?.score;
-  return asNumber(score?.goals ?? score?.goal ?? score?.total ?? score ?? preferred?.goals ?? preferred?.value);
+function stageFromType(type) {
+  const t = String(type || '').trim().toLowerCase();
+  const map = {
+    group: 'Group Stage',
+    r32: 'Round of 32',
+    r16: 'Round of 16',
+    qf: 'Quarterfinals',
+    sf: 'Semifinals',
+    third: 'Third Place Play-off',
+    final: 'Final',
+  };
+  return map[t] || (t ? t.toUpperCase() : 'World Cup');
 }
 
-function normalizeStatus(fixture) {
-  const state = String(fixture.state?.name || fixture.state?.short_name || fixture.state?.developer_name || fixture.status || '').toLowerCase();
-  if (['ft', 'finished', 'ended', 'aet', 'after extra time'].some((v) => state.includes(v))) return 'finished';
-  if (['live', '1st', '2nd', 'half', 'ht', 'inplay', 'in play'].some((v) => state.includes(v))) return 'live';
-  return 'scheduled';
+function statusFromGame(game) {
+  if (boolish(game.finished)) return 'finished';
+  const elapsed = String(game.time_elapsed || game.status || '').trim().toLowerCase();
+  if (!elapsed || elapsed === 'notstarted' || elapsed === 'not_started' || elapsed === 'scheduled') return 'scheduled';
+  if (elapsed.includes('half') || elapsed.includes('live') || elapsed.includes('1st') || elapsed.includes('2nd') || /^\d+$/.test(elapsed)) return 'live';
+  return elapsed;
 }
 
-function normalizeFixture(fixture) {
-  const home = pickParticipant(fixture, 'home');
-  const away = pickParticipant(fixture, 'away');
-  const homeScore = scoreFromScores(fixture, home?.id) ?? asNumber(fixture.scores?.localteam_score ?? fixture.localteam_score ?? fixture.home_score);
-  const awayScore = scoreFromScores(fixture, away?.id) ?? asNumber(fixture.scores?.visitorteam_score ?? fixture.visitorteam_score ?? fixture.away_score);
-  const venue = fixture.venue || fixture.venue_data || {};
-  const nameParts = String(fixture.name || '').split(/\s+vs\s+/i);
+function offsetForStadium(stadium = {}) {
+  const id = String(stadium.id || stadium.stadium_id || '');
+  const city = String(stadium.city_en || stadium.city || '').toLowerCase();
+  const country = String(stadium.country_en || '').toLowerCase();
+
+  // June/July 2026 tournament offsets. Mexico venues do not use DST; US/Canada do.
+  if (country.includes('mexico') || ['1', '2', '3'].includes(id) || city.includes('mexico') || city.includes('guadalajara') || city.includes('monterrey')) return '-06:00';
+  if (city.includes('vancouver') || city.includes('los angeles') || city.includes('inglewood') || city.includes('seattle') || city.includes('san francisco') || city.includes('santa clara')) return '-07:00';
+  if (city.includes('dallas') || city.includes('arlington') || city.includes('houston') || city.includes('kansas')) return '-05:00';
+  if (city.includes('toronto') || city.includes('east rutherford') || city.includes('new york') || city.includes('miami') || city.includes('atlanta') || city.includes('philadelphia') || city.includes('boston') || city.includes('foxborough')) return '-04:00';
+  return '-05:00';
+}
+
+function kickoffFromLocalDate(localDate, stadium) {
+  const text = clean(localDate);
+  if (!text) return null;
+  const match = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
+  if (!match) return text;
+  const [, mm, dd, yyyy, hh, min] = match;
+  return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}T${hh.padStart(2, '0')}:${min}:00${offsetForStadium(stadium)}`;
+}
+
+function normalizeName(name) {
+  const aliases = {
+    'czech republic': 'Czechia',
+    'cz republic': 'Czechia',
+    'czechia': 'Czechia',
+    'usa': 'USA',
+    'united states': 'USA',
+    'turkiye': 'Türkiye',
+    'turkey': 'Türkiye',
+    'ivory coast': 'Côte d’Ivoire',
+    "cote d'ivoire": 'Côte d’Ivoire',
+    'côte d’ivoire': 'Côte d’Ivoire',
+    'dr congo': 'DR Congo',
+    'congo dr': 'DR Congo',
+    'cd congo dr': 'DR Congo',
+    'congo, dr': 'DR Congo',
+    'congo democratic republic': 'DR Congo',
+    'curacao': 'Curaçao',
+  };
+  const raw = clean(name);
+  if (!raw) return null;
+  const key = raw.toLowerCase().replace(/[’]/g, "'").replace(/[^a-z0-9']+/g, ' ').trim();
+  return aliases[key] || raw;
+}
+
+function buildTeamMaps(teams) {
+  const byId = new Map();
+  const byName = new Map();
+  teams.forEach((team) => {
+    const id = clean(team.id || team.team_id || team._id);
+    const name = normalizeName(team.name_en || team.name || team.team_name || team.name_fa);
+    const entry = {
+      id,
+      name,
+      group: clean(team.groups || team.group),
+      fifaCode: clean(team.fifa_code),
+      flagUrl: clean(team.flag),
+    };
+    if (id) byId.set(String(id), entry);
+    if (name) byName.set(name.toLowerCase(), entry);
+  });
+  return { byId, byName };
+}
+
+function buildStadiumMap(stadiums) {
+  const byId = new Map();
+  stadiums.forEach((stadium) => {
+    const id = clean(stadium.id || stadium.stadium_id || stadium._id);
+    const entry = {
+      id,
+      stadium: clean(stadium.name_en || stadium.name || stadium.fifa_name),
+      city: clean(stadium.city_en || stadium.city),
+      country: clean(stadium.country_en || stadium.country),
+      capacity: asNumber(stadium.capacity),
+    };
+    if (id) byId.set(String(id), entry);
+  });
+  return byId;
+}
+
+function shouldShowScore(status) {
+  return ['live', 'finished', 'ft', 'aet', 'pen_finished'].includes(String(status || '').toLowerCase());
+}
+
+function normalizeGame(game, teamMaps, stadiumMap) {
+  const stadium = stadiumMap.get(String(game.stadium_id || '')) || {};
+  const homeId = clean(game.home_team_id);
+  const awayId = clean(game.away_team_id);
+  const homeTeamRecord = homeId && homeId !== '0' ? teamMaps.byId.get(String(homeId)) : null;
+  const awayTeamRecord = awayId && awayId !== '0' ? teamMaps.byId.get(String(awayId)) : null;
+
+  const homeTeam = normalizeName(
+    homeTeamRecord?.name || game.home_team_name_en || game.home_team_name || game.home_team_label || game.home_label
+  );
+  const awayTeam = normalizeName(
+    awayTeamRecord?.name || game.away_team_name_en || game.away_team_name || game.away_team_label || game.away_label
+  );
+  const status = statusFromGame(game);
+  const showScore = shouldShowScore(status);
+  const matchNumber = asNumber(game.id || game.match_id || game.matchNumber);
 
   return {
-    apiFixtureId: fixture.id,
-    homeTeam: pickName(home) || fixture.home_name || fixture.localteam_name || nameParts[0] || null,
-    awayTeam: pickName(away) || fixture.away_name || fixture.visitorteam_name || nameParts[1] || null,
-    homeScore,
-    awayScore,
-    status: normalizeStatus(fixture),
-    kickoff: fixture.starting_at || fixture.date_time || fixture.kickoff || null,
-    timestamp: fixture.starting_at_timestamp || null,
-    stadium: venue.name || fixture.venue_name || null,
-    city: venue.city_name || venue.city || null,
-    country: venue.country?.name || venue.country_name || null,
-    stage: fixture.stage?.name || null,
-    round: fixture.round?.name || null,
-    group: fixture.group?.name || null,
-    matchDetails: fixture.details || null,
-    rawState: fixture.state || fixture.status || null,
+    apiFixtureId: clean(game._id || game.id),
+    matchNumber,
+    homeTeam,
+    awayTeam,
+    homeTeamConfirmed: Boolean(homeTeamRecord || (homeId && homeId !== '0')),
+    awayTeamConfirmed: Boolean(awayTeamRecord || (awayId && awayId !== '0')),
+    homeScore: showScore ? asNumber(game.home_score) : null,
+    awayScore: showScore ? asNumber(game.away_score) : null,
+    status,
+    kickoff: kickoffFromLocalDate(game.local_date, stadium),
+    stadium: stadium.stadium || clean(game.stadium_name),
+    city: stadium.city || clean(game.city),
+    country: stadium.country || clean(game.country),
+    stage: stageFromType(game.type),
+    group: /^[A-L]$/i.test(String(game.group || '')) ? String(game.group).toUpperCase() : null,
+    type: clean(game.type),
+    timeElapsed: clean(game.time_elapsed),
+    homeScorers: clean(game.home_scorers),
+    awayScorers: clean(game.away_scorers),
+    raw: {
+      id: game.id,
+      stadium_id: game.stadium_id,
+      local_date: game.local_date,
+      finished: game.finished,
+      time_elapsed: game.time_elapsed,
+    },
   };
 }
 
-function collectFixtures(value, bucket = []) {
-  if (!value) return bucket;
-
-  if (Array.isArray(value)) {
-    value.forEach((item) => collectFixtures(item, bucket));
-    return bucket;
-  }
-
-  if (typeof value !== 'object') return bucket;
-
-  if (
-    value.id &&
-    (value.starting_at || value.starting_at_timestamp || value.name) &&
-    (value.league_id || value.season_id || value.participants || value.venue_id)
-  ) {
-    bucket.push(value);
-  }
-
-  ['fixtures', 'rounds', 'stages', 'groups', 'data'].forEach((key) => {
-    if (value[key]) collectFixtures(value[key], bucket);
-  });
-
-  return bucket;
+function normalizeStandingGroups(groups, teamMaps) {
+  return groups.map((group) => ({
+    group: clean(group.group || group.name || group.id),
+    teams: (group.teams || []).map((row) => {
+      const team = teamMaps.byId.get(String(row.team_id || row.id || ''));
+      return {
+        teamId: clean(row.team_id || row.id),
+        team: team?.name || clean(row.team_name || row.name),
+        played: asNumber(row.played || row.p || row.mp) || 0,
+        win: asNumber(row.win || row.w) || 0,
+        draw: asNumber(row.draw || row.d) || 0,
+        loss: asNumber(row.loss || row.l) || 0,
+        gf: asNumber(row.gf) || 0,
+        ga: asNumber(row.ga) || 0,
+        gd: asNumber(row.gd) || ((asNumber(row.gf) || 0) - (asNumber(row.ga) || 0)),
+        points: asNumber(row.pts || row.points) || 0,
+      };
+    }),
+  }));
 }
 
-async function sportFetch(endpoint, token, base, params = {}) {
-  const url = new URL(`${base}${endpoint}`);
-  url.searchParams.set('api_token', token);
-
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      url.searchParams.set(key, String(value));
-    }
-  });
-
-  const response = await fetch(url.toString(), {
-    headers: { Accept: 'application/json' },
-  });
-
-  const text = await response.text();
-  let json;
-
+async function fetchJSON(endpoint, base, token) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
   try {
-    json = text ? JSON.parse(text) : {};
-  } catch {
-    json = { raw: text };
+    const headers = { Accept: 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const response = await fetch(`${base}${endpoint}`, { headers, signal: controller.signal });
+    const text = await response.text();
+    let json;
+    try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
+    if (!response.ok) {
+      const message = json?.message || json?.error || `worldcup26.ir returned ${response.status}`;
+      throw new Error(message);
+    }
+    return json;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  if (!response.ok) {
-    const message = json?.message || json?.error || `Sportmonks returned ${response.status}`;
-    throw new Error(message);
-  }
-
-  return json;
 }
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') return res.status(204).end();
 
-  const token = process.env.SPORTMONKS_API_TOKEN;
-  const base = process.env.SPORTMONKS_API_BASE || DEFAULT_BASE;
-  const seasonId = process.env.SPORTMONKS_SEASON_ID || DEFAULT_SEASON_ID;
-  const leagueId = process.env.SPORTMONKS_LEAGUE_ID || DEFAULT_LEAGUE_ID;
-
-  if (!token) {
-    return res.status(200).json({
-      ok: false,
-      mode: 'fallback',
-      message: 'SPORTMONKS_API_TOKEN is not configured. The website will use fallback schedule data.',
-      fixtures: [],
-      standings: [],
-      seasonId,
-      leagueId,
-    });
-  }
-
-  const fixtureInclude = 'participants;scores;state;venue;stage;round;group';
-  const standingsInclude = 'participant;group';
-  const liveInclude = fixtureInclude;
-
-  const tournamentStartDate = '2026-06-11';
-  const tournamentEndDate = '2026-07-20';
-
-  const [seasonResult, scheduleResult, standingsResult, liveResult] = await Promise.allSettled([
-    sportFetch(`/fixtures/between/${tournamentStartDate}/${tournamentEndDate}`, token, base, {
-      include: fixtureInclude,
-      filters: `fixtureLeagues:${leagueId}`,
-      per_page: 200,
-    }),
-
-    // Important: schedule endpoint does not accept nested includes like fixtures.participants.
-    // So we request the schedule directly and let collectFixtures() read the nested schedule response.
-    sportFetch(`/schedules/seasons/${seasonId}`, token, base),
-
-    sportFetch(`/standings/seasons/${seasonId}`, token, base, {
-      include: standingsInclude,
-    }),
-
-    sportFetch('/livescores', token, base, {
-      include: liveInclude,
-      filters: `fixtureLeagues:${leagueId}`,
-      per_page: 100,
-    }),
-  ]);
-
+  const base = process.env.WORLDCUP26_API_BASE || DEFAULT_BASE;
+  const token = process.env.WORLDCUP26_API_TOKEN || '';
   const errors = [];
 
-  if (seasonResult.status === 'rejected') errors.push(`season fixtures: ${seasonResult.reason.message}`);
-  if (scheduleResult.status === 'rejected') errors.push(`schedule fixtures: ${scheduleResult.reason.message}`);
-  if (standingsResult.status === 'rejected') errors.push(`standings: ${standingsResult.reason.message}`);
-  if (liveResult.status === 'rejected') errors.push(`livescores: ${liveResult.reason.message}`);
+  const [gamesResult, teamsResult, stadiumsResult, groupsResult, healthResult] = await Promise.allSettled([
+    fetchJSON('/get/games', base, token),
+    fetchJSON('/get/teams', base, token),
+    fetchJSON('/get/stadiums', base, token),
+    fetchJSON('/get/groups', base, token),
+    fetchJSON('/health', base, token),
+  ]);
 
-  const seasonFixtures =
-    seasonResult.status === 'fulfilled'
-      ? collectFixtures(seasonResult.value?.data?.fixtures || seasonResult.value?.data || [])
-      : [];
+  if (gamesResult.status === 'rejected') errors.push(`games: ${gamesResult.reason.message}`);
+  if (teamsResult.status === 'rejected') errors.push(`teams: ${teamsResult.reason.message}`);
+  if (stadiumsResult.status === 'rejected') errors.push(`stadiums: ${stadiumsResult.reason.message}`);
+  if (groupsResult.status === 'rejected') errors.push(`groups: ${groupsResult.reason.message}`);
+  if (healthResult.status === 'rejected') errors.push(`health: ${healthResult.reason.message}`);
 
-  const scheduleFixtures =
-    scheduleResult.status === 'fulfilled'
-      ? collectFixtures(scheduleResult.value?.data || [])
-      : [];
+  const games = gamesResult.status === 'fulfilled' ? asArray(gamesResult.value, ['games', 'matches', 'fixtures']) : [];
+  const teams = teamsResult.status === 'fulfilled' ? asArray(teamsResult.value, ['teams']) : [];
+  const stadiums = stadiumsResult.status === 'fulfilled' ? asArray(stadiumsResult.value, ['stadiums']) : [];
+  const groups = groupsResult.status === 'fulfilled' ? asArray(groupsResult.value, ['groups', 'tables', 'standings']) : [];
 
-  const liveFixtures =
-    liveResult.status === 'fulfilled'
-      ? collectFixtures(liveResult.value?.data || [])
-      : [];
-
-  const merged = new Map();
-
-  [...seasonFixtures, ...scheduleFixtures, ...liveFixtures].forEach((fixture) => {
-    if (fixture?.id) merged.set(fixture.id, normalizeFixture(fixture));
-  });
-
-  const fixtures = [...merged.values()].filter((fixture) => fixture.homeTeam && fixture.awayTeam);
-  const standings = standingsResult.status === 'fulfilled' ? standingsResult.value.data || [] : [];
+  const teamMaps = buildTeamMaps(teams);
+  const stadiumMap = buildStadiumMap(stadiums);
+  const fixtures = games
+    .map((game) => normalizeGame(game, teamMaps, stadiumMap))
+    .filter((fixture) => fixture.matchNumber && fixture.homeTeam && fixture.awayTeam)
+    .sort((a, b) => a.matchNumber - b.matchNumber);
 
   return res.status(200).json({
-    ok: fixtures.length > 0 || standings.length > 0,
-    mode: 'sportmonks',
-    seasonId,
-    leagueId,
+    ok: fixtures.length > 0,
+    mode: 'worldcup26',
+    provider: 'worldcup26.ir free API',
+    requiresApiKey: false,
+    base,
     fixtures,
-    standings,
+    standings: normalizeStandingGroups(groups, teamMaps),
+    teams: teams.map((team) => ({
+      id: clean(team.id || team.team_id),
+      name: normalizeName(team.name_en || team.name),
+      group: clean(team.groups || team.group),
+      fifaCode: clean(team.fifa_code),
+      flagUrl: clean(team.flag),
+    })),
+    stadiums: [...stadiumMap.values()],
     errors,
     debugCounts: {
-      seasonFixtures: seasonFixtures.length,
-      scheduleFixtures: scheduleFixtures.length,
-      liveFixtures: liveFixtures.length,
-      standings: standings.length,
+      games: games.length,
+      teams: teams.length,
+      stadiums: stadiums.length,
+      groups: groups.length,
+      fixtures: fixtures.length,
     },
+    health: healthResult.status === 'fulfilled' ? healthResult.value : null,
     fetchedAt: new Date().toISOString(),
   });
 };
