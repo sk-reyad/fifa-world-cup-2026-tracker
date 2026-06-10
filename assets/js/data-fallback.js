@@ -244,7 +244,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M002",
@@ -268,7 +268,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M003",
@@ -292,7 +292,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M004",
@@ -316,7 +316,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M005",
@@ -340,7 +340,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M006",
@@ -364,7 +364,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M007",
@@ -388,7 +388,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M008",
@@ -412,7 +412,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M009",
@@ -436,7 +436,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M010",
@@ -460,7 +460,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M011",
@@ -484,7 +484,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M012",
@@ -508,7 +508,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M013",
@@ -532,7 +532,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M014",
@@ -556,7 +556,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M015",
@@ -580,7 +580,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M016",
@@ -604,7 +604,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M017",
@@ -628,7 +628,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M018",
@@ -652,7 +652,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M019",
@@ -676,7 +676,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M020",
@@ -700,7 +700,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M021",
@@ -724,7 +724,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M022",
@@ -748,7 +748,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M023",
@@ -772,7 +772,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M024",
@@ -796,7 +796,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M025",
@@ -820,7 +820,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M026",
@@ -844,7 +844,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M027",
@@ -868,7 +868,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M028",
@@ -892,7 +892,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M029",
@@ -916,7 +916,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M030",
@@ -940,7 +940,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M031",
@@ -964,7 +964,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M032",
@@ -988,7 +988,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M033",
@@ -1012,7 +1012,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M034",
@@ -1036,7 +1036,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M035",
@@ -1060,7 +1060,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M036",
@@ -1084,7 +1084,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M037",
@@ -1108,7 +1108,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M038",
@@ -1132,7 +1132,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M039",
@@ -1156,7 +1156,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M040",
@@ -1180,7 +1180,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M041",
@@ -1204,7 +1204,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M042",
@@ -1228,7 +1228,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M043",
@@ -1252,7 +1252,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M044",
@@ -1276,7 +1276,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M045",
@@ -1300,7 +1300,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M046",
@@ -1324,7 +1324,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M047",
@@ -1348,7 +1348,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M048",
@@ -1372,7 +1372,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M049",
@@ -1396,7 +1396,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M050",
@@ -1420,7 +1420,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M051",
@@ -1444,7 +1444,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M052",
@@ -1468,7 +1468,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M053",
@@ -1492,7 +1492,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M054",
@@ -1516,7 +1516,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M055",
@@ -1540,7 +1540,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M056",
@@ -1564,7 +1564,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M057",
@@ -1588,7 +1588,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M058",
@@ -1612,7 +1612,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M059",
@@ -1636,7 +1636,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M060",
@@ -1660,7 +1660,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M061",
@@ -1684,7 +1684,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M062",
@@ -1708,7 +1708,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M063",
@@ -1732,7 +1732,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M064",
@@ -1756,7 +1756,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M065",
@@ -1780,7 +1780,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M066",
@@ -1804,7 +1804,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M067",
@@ -1828,7 +1828,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M068",
@@ -1852,7 +1852,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M069",
@@ -1876,7 +1876,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M070",
@@ -1900,7 +1900,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M071",
@@ -1924,7 +1924,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M072",
@@ -1948,7 +1948,7 @@ window.WC_FALLBACK_DATA = {
       "homeScore": null,
       "awayScore": null,
       "isPlaceholder": false,
-      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA/Sportmonks venue lists."
+      "source": "The Daily Star schedule in Bangladesh time; venue stadium mapping cross-checked with FIFA venue lists."
     },
     {
       "id": "M073",

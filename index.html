@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="FIFA World Cup 2026 match tracker with BST schedule, countdowns, favourite team focus, standings and live API support." />
+  <meta name="description" content="FIFA World Cup 2026 match tracker with BST schedule, countdowns, favourite team focus, standings and free API support." />
   <title>FIFA World Cup 2026 Tracker | BST Edition</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css" />
-  <link rel="manifest" href="manifest.json" />
 </head>
 <body>
   <div class="page-shell">
@@ -28,10 +27,11 @@
         <a href="#today">Today</a>
         <a href="#favourite">Favourite</a>
         <a href="#major">Major Teams</a>
+        <a href="#scoreboard">Scoreboard</a>
         <a href="#schedule">Schedule</a>
         <a href="#standings">Standings</a>
         <a href="#groups">Groups</a>
-        <a href="#guide">API Guide</a>
+        <a href="#guide">Data Source</a>
       </nav>
 
       <div class="header-actions">
@@ -45,7 +45,7 @@
         <div class="hero-content">
           <p class="eyebrow">Bangladesh Standard Time • 104 match dashboard</p>
           <h1>FIFA World Cup 2026 Match Tracker</h1>
-          <p class="hero-text">See today’s matches, live countdowns, favourite team focus, group standings, knockout placeholders and Sportmonks live API-ready updates from one clean dashboard.</p>
+          <p class="hero-text">See today’s matches, live countdowns, favourite team focus, group standings, knockout placeholders and free API-ready updates from one clean dashboard.</p>
           <div class="hero-actions">
             <a class="primary-btn" href="#schedule">View Full Schedule</a>
             <a class="secondary-btn" href="#standings">Check Standings</a>
@@ -137,7 +137,7 @@
           <div>
             <p class="eyebrow">Live-ready</p>
             <h2>Live Scoreboard</h2>
-            <p>Shows live/finished scores when the Sportmonks token is connected; otherwise it safely shows scheduled matches.</p>
+            <p>Shows live or finished scores when the free API returns match data; otherwise it safely shows scheduled matches from fallback data.</p>
           </div>
           <button class="chip-button" id="refreshLiveBtn" type="button">↻ Refresh Data</button>
         </div>
@@ -179,22 +179,22 @@
 
       <section class="section-pad guide-section" id="guide">
         <div class="section-heading">
-          <p class="eyebrow">Setup after delivery</p>
-          <h2>API + Deployment Guide</h2>
-          <p>The full step-by-step guide is also included in README.md. Keep your Sportmonks token inside Vercel Environment Variables, not inside public JavaScript files.</p>
+          <p class="eyebrow">Free API + fallback</p>
+          <h2>Data Source</h2>
+          <p>This version uses a free World Cup 2026 API proxy and local fallback schedule data, so the dashboard does not break if the API is unavailable.</p>
         </div>
         <div class="guide-grid">
           <article>
-            <h3>1. Get Sportmonks token</h3>
-            <p>Create/log in to MySportMonks, activate a World Cup plan, then copy your football API token.</p>
+            <h3>1. Free API mode</h3>
+            <p>The website calls <code>/api/worldcup</code>, and that serverless route fetches data from the free World Cup 2026 API source.</p>
           </article>
           <article>
-            <h3>2. Put token in Vercel</h3>
-            <p>Add <code>SPORTMONKS_API_TOKEN</code> and optional <code>SPORTMONKS_SEASON_ID</code> in Vercel project settings.</p>
+            <h3>2. No secret token needed</h3>
+            <p>This build does not require paid API keys or environment variables.</p>
           </article>
           <article>
-            <h3>3. Deploy</h3>
-            <p>Deploy the GitHub repo to Vercel. The frontend calls <code>/api/worldcup</code>, so the token stays hidden.</p>
+            <h3>3. Safe fallback</h3>
+            <p>If the free API is down or returns incomplete data, the dashboard keeps running with the local fallback schedule.</p>
           </article>
         </div>
       </section>

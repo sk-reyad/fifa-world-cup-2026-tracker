@@ -1,35 +1,61 @@
-# FIFA World Cup 2026 Match Tracker — Clean Free API Version
+# FIFA World Cup 2026 Match Tracker — Clean Free API Build
 
-This is a clean GitHub/Vercel-ready version of the FIFA World Cup 2026 Match Tracker.
+This is a clean rebuild of the FIFA World Cup 2026 BST Match Tracker.
 
-Important: this version does **not** use Sportmonks and does **not** need any API key or Vercel Environment Variables.
+What is included:
 
-Data source priority:
-1. Free API proxy: `/api/worldcup`, which fetches data from `worldcup26.ir`.
-2. Local fallback schedule: `assets/js/data-fallback.js`, so the website still works if the free API is down.
+- Football-themed responsive website
+- Bangladesh Standard Time display
+- Today’s matches
+- Global and per-match countdowns
+- Dynamic favourite team selector, default Brazil
+- Major teams quick-watch section
+- Full schedule with search and filters
+- Group standings calculated from available results
+- Groups A–L with flags
+- Browser notification buttons for 20-minute reminders
+- Free API proxy at `/api/worldcup`
+- Local fallback schedule so the site keeps working if the free API is unavailable
 
-## What is included
-
-- `index.html`
-- `assets/css/style.css`
-- `assets/js/` scripts
-- `api/worldcup.js` Vercel serverless proxy for the free API
-- `manifest.json`
-- `README.md`
-- `SELF_CHECK.md`
-
-## What is intentionally removed
+What is intentionally not included:
 
 - No `package.json`
 - No `vercel.json`
-- No `.env.example`
-- No Sportmonks token or paid API setup
+- No `.env` or `.env.example`
+- No paid API key setup
+- No environment variables required
 
-This avoids the Vercel JSON/runtime/package parsing errors that happened before.
+## Files
 
-## Deploy notes
+- `index.html`
+- `assets/css/style.css`
+- `assets/js/data-fallback.js`
+- `assets/js/app.js`
+- `assets/js/ui.js`
+- `assets/js/countdown.js`
+- `assets/js/standings.js`
+- `assets/js/favourites.js`
+- `assets/js/notifications.js`
+- `api/worldcup.js`
+- `README.md`
+- `SELF_CHECK.md`
 
-In Vercel, keep settings simple:
+## How to replace your current folder
+
+Delete everything inside your existing project folder except the hidden `.git` folder.
+Then extract this ZIP into that same project folder.
+
+After extracting, push with:
+
+```powershell
+git add -A
+git commit -m "Clean rebuild with free World Cup API"
+git push
+```
+
+## Vercel settings
+
+Use simple settings:
 
 - Framework Preset: Other
 - Build Command: blank
@@ -42,10 +68,18 @@ In Vercel, keep settings simple:
 
 Open:
 
-`https://YOUR-VERCEL-DOMAIN/api/worldcup?t=free-api`
+```text
+https://YOUR-VERCEL-DOMAIN/api/worldcup?t=clean-free
+```
 
-A successful free API proxy response should include:
+Expected successful API route format:
 
-`"mode": "worldcup26"`
+```json
+{
+  "mode": "worldcup26",
+  "provider": "worldcup26.ir free API",
+  "requiresApiKey": false
+}
+```
 
-If the free API is temporarily down, the main website will still work using fallback schedule data.
+If the free API returns no data, the main website still works using local fallback data.

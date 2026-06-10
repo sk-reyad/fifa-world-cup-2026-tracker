@@ -1,11 +1,15 @@
-# Self-check
+# Self Check
 
-Clean free API version prepared with these checks:
+Checked before delivery:
 
-- Removed `package.json`.
-- Removed `vercel.json`.
-- Removed `.env.example` and all Sportmonks setup requirements.
-- Kept `api/worldcup.js` as a Vercel serverless function using `worldcup26.ir` free API.
-- Confirmed `api/worldcup.js` passes Node syntax check.
-- Confirmed the ZIP root contains project files directly, not an extra nested project folder.
-- Website keeps fallback schedule support, so it does not break if the free API is unavailable.
+- `package.json` removed.
+- `vercel.json` removed.
+- `.env.example` removed.
+- `index.html` no longer contains old paid-provider setup text.
+- `index.html` no longer references `manifest.json`.
+- `api/worldcup.js` uses the free World Cup API proxy approach.
+- JavaScript syntax checked for every JS file.
+- Fallback data file is present.
+- CSS file is present.
+- GitHub/Vercel deployment can run without package/config parsing.
+- Local fallback schedule keeps the dashboard usable even if the free API is unavailable.
