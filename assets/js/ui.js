@@ -11,13 +11,28 @@
       .replaceAll("'", '&#039;');
   }
 
-  function teamLabel(team, flag, mode = 'horizontal-left') {
-    const safeTeam = escapeHTML(team);
-    const safeFlag = escapeHTML(flag || '🏳️');
-    if (mode === 'horizontal-right') return `${safeTeam} ${safeFlag}`;
-    return `${safeFlag} ${safeTeam}`;
+  const FLAG_CDN_BASE = 'https://flagcdn.com';
+
+  function flagSource(flagCodeOrUrl) {
+    const value = String(flagCodeOrUrl || '').trim().toLowerCase();
+    if (!value) return `${FLAG_CDN_BASE}/un.svg`;
+    if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('assets/')) return escapeHTML(value);
+    const safeCode = value.replace(/[^a-z0-9-]/g, '');
+    return `${FLAG_CDN_BASE}/${safeCode || 'un'}.svg`;
   }
 
+  function flagImage(flagCodeOrUrl, team) {
+    return `<img class="flag-icon" src="${flagSource(flagCodeOrUrl)}" alt="${escapeHTML(team)} flag" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
+  }
+
+  function teamLabel(team, flag, mode = 'horizontal-left') {
+    const safeTeam = `<span class="team-name-text">${escapeHTML(team)}</span>`;
+    const icon = flagImage(flag, team);
+    if (mode === 'horizontal-right') {
+      return `<span class="team-label team-label--right">${safeTeam} ${icon}</span>`;
+    }
+    return `<span class="team-label team-label--left">${icon} ${safeTeam}</span>`;
+  }
   function horizontalMatchTitle(fixture) {
     return `
       <div class="match-title-horizontal">
@@ -140,7 +155,7 @@
   }
 
   window.WC_UI = {
-    qs, qsa, escapeHTML, teamLabel, horizontalMatchTitle, verticalMatchTitle,
+    qs, qsa, escapeHTML, flagSource, flagImage, teamLabel, horizontalMatchTitle, verticalMatchTitle,
     fixtureVenue, formatDateTime, statusLabel, scoreLine, metaRow,
     notifyButton, countdownContainer, matchCard, featureCard, timelineItem, empty,
   };

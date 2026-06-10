@@ -83,3 +83,8 @@ Expected successful API route format:
 ```
 
 If the free API returns no data, the main website still works using local fallback data.
+
+
+## Flag rendering
+
+Team flags are rendered as SVG images through FlagCDN URLs such as `https://flagcdn.com/br.svg`, not as emoji flags. This avoids broken flag emoji rendering on Windows/browser combinations.

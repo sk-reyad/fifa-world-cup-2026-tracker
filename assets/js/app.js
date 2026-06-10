@@ -79,7 +79,7 @@
     const select = UI.qs('#favouriteSelect');
     if (!select) return;
     const teams = FAV.teamsFromGroups(state.groups);
-    select.innerHTML = teams.map((team) => `<option value="${UI.escapeHTML(team)}">${UI.teamLabel(team, state.flags[team])}</option>`).join('');
+    select.innerHTML = teams.map((team) => `<option value="${UI.escapeHTML(team)}">${UI.escapeHTML(team)}</option>`).join('');
     select.value = state.favouriteTeam;
   }
 
@@ -102,9 +102,9 @@
   }
 
   function renderFavourite() {
-    const flag = state.flags[state.favouriteTeam] || '🏳️';
+    const flag = state.flags[state.favouriteTeam] || 'un';
     UI.qs('#favouriteHeading').textContent = `${state.favouriteTeam} Focus`;
-    UI.qs('#favouriteBadge').textContent = `${flag} ${state.favouriteTeam}`;
+    UI.qs('#favouriteBadge').innerHTML = UI.teamLabel(state.favouriteTeam, flag);
 
     const next = nextFixtureForTeam(state.favouriteTeam);
     UI.qs('#favouriteFeature').innerHTML = UI.featureCard(next, state.favouriteTeam);
@@ -119,14 +119,14 @@
     const el = UI.qs('#majorTeams');
     if (!el) return;
     el.innerHTML = majorTeams.map((team) => {
-      const flag = state.flags[team] || '🏳️';
+      const flag = state.flags[team] || 'un';
       const fixture = nextFixtureForTeam(team);
       if (!fixture) {
-        return `<article class="team-watch-card"><h3>${UI.escapeHTML(flag)} ${UI.escapeHTML(team)}</h3>${UI.empty('No upcoming match found.')}</article>`;
+        return `<article class="team-watch-card"><h3>${UI.teamLabel(team, flag)}</h3>${UI.empty('No upcoming match found.')}</article>`;
       }
       return `
         <article class="team-watch-card" data-match-id="${UI.escapeHTML(fixture.id)}">
-          <h3>${UI.escapeHTML(flag)} ${UI.escapeHTML(team)}</h3>
+          <h3>${UI.teamLabel(team, flag)}</h3>
           ${UI.horizontalMatchTitle(fixture)}
           ${UI.metaRow(fixture, team === state.favouriteTeam, true)}
           ${UI.scoreLine(fixture)}
@@ -228,7 +228,7 @@
               ${rows.map((row, index) => `
                 <tr class="${index < 2 ? 'qualified-row' : ''}">
                   <td>${index + 1}</td>
-                  <td class="team-name-cell">${UI.escapeHTML(row.flag)} ${UI.escapeHTML(row.team)}</td>
+                  <td class="team-name-cell">${UI.teamLabel(row.team, row.flag)}</td>
                   <td>${row.played}</td><td>${row.win}</td><td>${row.draw}</td><td>${row.loss}</td>
                   <td>${row.gf}</td><td>${row.ga}</td><td>${row.gd > 0 ? '+' : ''}${row.gd}</td><td><strong>${row.points}</strong></td>
                 </tr>
@@ -247,7 +247,7 @@
       <article class="group-card">
         <h3><span>Group ${UI.escapeHTML(group)}</span><span class="badge">${teams.length} teams</span></h3>
         <ul>
-          ${teams.map((team) => `<li><strong>${UI.escapeHTML(state.flags[team] || '🏳️')} ${UI.escapeHTML(team)}</strong><span>${state.fixtures.filter((fixture) => hasTeam(fixture, team)).length} matches</span></li>`).join('')}
+          ${teams.map((team) => `<li><strong>${UI.teamLabel(team, state.flags[team] || 'un')}</strong><span>${state.fixtures.filter((fixture) => hasTeam(fixture, team)).length} matches</span></li>`).join('')}
         </ul>
       </article>
     `).join('');
@@ -386,8 +386,8 @@
     if (live.matchNumber && Number(target.matchNumber) === Number(live.matchNumber)) {
       if (live.homeTeam && (live.homeTeamConfirmed || String(target.homeTeam || '').toLowerCase().includes('winner') || String(target.homeTeam || '').toLowerCase().includes('runner') || String(target.homeTeam || '').toLowerCase().includes('3rd'))) target.homeTeam = live.homeTeam;
       if (live.awayTeam && (live.awayTeamConfirmed || String(target.awayTeam || '').toLowerCase().includes('winner') || String(target.awayTeam || '').toLowerCase().includes('runner') || String(target.awayTeam || '').toLowerCase().includes('3rd'))) target.awayTeam = live.awayTeam;
-      target.homeFlag = state.flags[target.homeTeam] || target.homeFlag;
-      target.awayFlag = state.flags[target.awayTeam] || target.awayFlag;
+      target.homeFlag = state.flags[target.homeTeam] || target.homeFlag || 'un';
+      target.awayFlag = state.flags[target.awayTeam] || target.awayFlag || 'un';
     }
     if (live.kickoff) {
       target.kickoff = live.kickoff;

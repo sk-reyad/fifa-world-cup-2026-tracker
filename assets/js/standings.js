@@ -5,7 +5,7 @@
       rows[group] = teams.map((team) => ({
         group,
         team,
-        flag: flags[team] || '🏳️',
+        flag: flags[team] || 'un',
         played: 0,
         win: 0,
         draw: 0,

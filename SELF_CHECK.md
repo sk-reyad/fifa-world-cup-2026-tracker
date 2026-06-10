@@ -13,3 +13,5 @@ Checked before delivery:
 - CSS file is present.
 - GitHub/Vercel deployment can run without package/config parsing.
 - Local fallback schedule keeps the dashboard usable even if the free API is unavailable.
+
+- SVG flag rendering added; emoji team flags removed from visible match/team labels.
