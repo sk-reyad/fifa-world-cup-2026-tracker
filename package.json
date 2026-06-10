@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "fifa-world-cup-2026-tracker-bst",
   "version": "1.0.0",
   "description": "FIFA World Cup 2026 tracker with BST schedule, countdowns, dynamic favourite team, group standings and free worldcup26.ir API proxy.",
@@ -8,6 +8,6 @@
     "check": "node --check api/worldcup.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": "20.x"
   }
 }

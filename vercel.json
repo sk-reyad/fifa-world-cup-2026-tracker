@@ -1,10 +1,5 @@
-{
+﻿{
   "version": 2,
-  "functions": {
-    "api/worldcup.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
