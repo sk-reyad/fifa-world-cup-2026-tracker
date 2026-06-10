@@ -4,7 +4,6 @@
   "description": "FIFA World Cup 2026 tracker with BST schedule, countdowns, dynamic favourite team, group standings and free worldcup26.ir API proxy.",
   "private": true,
   "scripts": {
-    "start": "vercel dev",
     "check": "node --check api/worldcup.js"
   },
   "engines": {
