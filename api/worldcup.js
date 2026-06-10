@@ -150,15 +150,28 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  const fixtureInclude = 'fixtures.participants;fixtures.scores;fixtures.state;fixtures.venue;fixtures.stage;fixtures.round;fixtures.group';
-  const scheduleInclude = 'fixtures.participants;fixtures.scores;fixtures.state;fixtures.venue;fixtures.stage;fixtures.round;fixtures.group';
-  const standingsInclude = 'participant;details.type;group';
-  const liveInclude = 'participants;scores;state;venue;stage;round;group';
+  const fixtureInclude = 'participants;scores;state;venue;stage;round;group';
+  const standingsInclude = 'participant;group';
+  const liveInclude = fixtureInclude;
+
+  const tournamentStartDate = '2026-06-11';
+  const tournamentEndDate = '2026-07-20';
 
   const [seasonResult, scheduleResult, standingsResult, liveResult] = await Promise.allSettled([
-    sportFetch(`/seasons/${seasonId}`, token, base, { include: fixtureInclude }),
-    sportFetch(`/schedules/seasons/${seasonId}`, token, base, { include: scheduleInclude }),
-    sportFetch(`/standings/seasons/${seasonId}`, token, base, { include: standingsInclude }),
+    sportFetch(`/fixtures/between/${tournamentStartDate}/${tournamentEndDate}`, token, base, {
+      include: fixtureInclude,
+      filters: `fixtureLeagues:${leagueId}`,
+      per_page: 200,
+    }),
+
+    // Important: schedule endpoint does not accept nested includes like fixtures.participants.
+    // So we request the schedule directly and let collectFixtures() read the nested schedule response.
+    sportFetch(`/schedules/seasons/${seasonId}`, token, base),
+
+    sportFetch(`/standings/seasons/${seasonId}`, token, base, {
+      include: standingsInclude,
+    }),
+
     sportFetch('/livescores', token, base, {
       include: liveInclude,
       filters: `fixtureLeagues:${leagueId}`,
