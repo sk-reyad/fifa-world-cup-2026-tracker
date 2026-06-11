@@ -198,10 +198,7 @@
     const upcoming = upcomingFixturesForTeam(state.favouriteTeam).filter((fixture) => !focus || fixture.id !== focus.id).slice(0, 3);
     const finished = latestFinishedForTeam(state.favouriteTeam);
     const list = upcoming.length ? upcoming : (finished && (!focus || finished.id !== focus.id) ? [finished] : []);
-    const timelineEl = UI.qs('#favouriteTimeline');
-    if (!timelineEl) return;
-    timelineEl.className = `timeline timeline--count-${Math.max(1, Math.min(list.length || 1, 3))}`;
-    timelineEl.innerHTML = list.length
+    UI.qs('#favouriteTimeline').innerHTML = list.length
       ? list.map((fixture) => UI.matchCard(fixture, { isFavourite: true })).join('')
       : UI.empty(`No additional upcoming match found for ${state.favouriteTeam}.`);
   }
@@ -492,6 +489,22 @@
     return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
   }
 
+  function toScore(value) {
+    if (value === null || value === undefined || value === '') return NaN;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : NaN;
+  }
+
+  function pickScore(source, keys) {
+    for (const key of keys) {
+      if (source && Object.prototype.hasOwnProperty.call(source, key)) {
+        const value = toScore(source[key]);
+        if (Number.isFinite(value)) return value;
+      }
+    }
+    return NaN;
+  }
+
   function mergeLiveFixture(live) {
     if (!live || !live.homeTeam || !live.awayTeam) return false;
     const liveHome = normalizeName(live.homeTeam);
@@ -505,13 +518,19 @@
     target.status = live.status || target.status;
     target.apiFixtureId = live.apiFixtureId || target.apiFixtureId;
     target.timeElapsed = live.timeElapsed || live.minute || live.elapsed || target.timeElapsed;
-    if (Number.isFinite(live.homeScore) && Number.isFinite(live.awayScore)) {
-      target.homeScore = sameDirection ? live.homeScore : live.awayScore;
-      target.awayScore = sameDirection ? live.awayScore : live.homeScore;
+
+    const homeScore = pickScore(live, ['homeScore', 'home_score', 'homeGoals', 'home_goals', 'homeTeamScore', 'home_team_score', 'team1Score', 'team_1_score']);
+    const awayScore = pickScore(live, ['awayScore', 'away_score', 'awayGoals', 'away_goals', 'awayTeamScore', 'away_team_score', 'team2Score', 'team_2_score']);
+    if (Number.isFinite(homeScore) && Number.isFinite(awayScore)) {
+      target.homeScore = sameDirection ? homeScore : awayScore;
+      target.awayScore = sameDirection ? awayScore : homeScore;
     }
-    if (Number.isFinite(live.homePenalty) && Number.isFinite(live.awayPenalty)) {
-      target.homePenalty = sameDirection ? live.homePenalty : live.awayPenalty;
-      target.awayPenalty = sameDirection ? live.awayPenalty : live.homePenalty;
+
+    const homePenalty = pickScore(live, ['homePenalty', 'home_penalty', 'homePenalties', 'home_penalties', 'homePenaltyScore', 'home_penalty_score']);
+    const awayPenalty = pickScore(live, ['awayPenalty', 'away_penalty', 'awayPenalties', 'away_penalties', 'awayPenaltyScore', 'away_penalty_score']);
+    if (Number.isFinite(homePenalty) && Number.isFinite(awayPenalty)) {
+      target.homePenalty = sameDirection ? homePenalty : awayPenalty;
+      target.awayPenalty = sameDirection ? awayPenalty : homePenalty;
     }
     if (live.matchNumber && Number(target.matchNumber) === Number(live.matchNumber)) {
       if (live.homeTeam && (live.homeTeamConfirmed || String(target.homeTeam || '').toLowerCase().includes('winner') || String(target.homeTeam || '').toLowerCase().includes('runner') || String(target.homeTeam || '').toLowerCase().includes('3rd'))) target.homeTeam = live.homeTeam;
@@ -534,248 +553,24 @@
     return true;
   }
 
-
-  function clientAsArray(payload, keys = []) {
-    if (Array.isArray(payload)) return payload;
-    for (const key of keys) {
-      if (Array.isArray(payload?.[key])) return payload[key];
-    }
-    if (Array.isArray(payload?.data)) return payload.data;
-    if (Array.isArray(payload?.result)) return payload.result;
-    return [];
-  }
-
-  function clientClean(value) {
-    if (value === null || value === undefined) return null;
-    const text = String(value).trim();
-    if (!text || text.toLowerCase() === 'null' || text.toLowerCase() === 'undefined') return null;
-    return text;
-  }
-
-  function clientAsNumber(value) {
-    if (value === null || value === undefined || value === '' || value === 'null') return null;
-    const n = Number(value);
-    return Number.isFinite(n) ? n : null;
-  }
-
-  function clientBoolish(value) {
-    const text = String(value ?? '').trim().toLowerCase();
-    return ['true', '1', 'yes', 'finished', 'ft'].includes(text);
-  }
-
-  function clientStageFromType(type) {
-    const t = String(type || '').trim().toLowerCase();
-    const map = {
-      group: 'Group Stage',
-      r32: 'Round of 32',
-      r16: 'Round of 16',
-      qf: 'Quarterfinals',
-      sf: 'Semifinals',
-      third: 'Third Place Play-off',
-      final: 'Final',
-    };
-    return map[t] || (t ? t.toUpperCase() : 'World Cup');
-  }
-
-  function clientStatusFromGame(game) {
-    if (clientBoolish(game.finished)) return 'finished';
-    const elapsed = String(game.time_elapsed || game.status || '').trim().toLowerCase();
-    if (!elapsed || elapsed === 'notstarted' || elapsed === 'not_started' || elapsed === 'scheduled') return 'scheduled';
-    if (elapsed.includes('half') || elapsed.includes('live') || elapsed.includes('1st') || elapsed.includes('2nd') || /^\d+$/.test(elapsed)) return 'live';
-    return elapsed;
-  }
-
-  function clientOffsetForStadium(stadium = {}) {
-    const id = String(stadium.id || stadium.stadium_id || '');
-    const city = String(stadium.city_en || stadium.city || '').toLowerCase();
-    const country = String(stadium.country_en || stadium.country || '').toLowerCase();
-    if (country.includes('mexico') || ['1', '2', '3'].includes(id) || city.includes('mexico') || city.includes('guadalajara') || city.includes('monterrey')) return '-06:00';
-    if (city.includes('vancouver') || city.includes('los angeles') || city.includes('inglewood') || city.includes('seattle') || city.includes('san francisco') || city.includes('santa clara')) return '-07:00';
-    if (city.includes('dallas') || city.includes('arlington') || city.includes('houston') || city.includes('kansas')) return '-05:00';
-    if (city.includes('toronto') || city.includes('east rutherford') || city.includes('new york') || city.includes('miami') || city.includes('atlanta') || city.includes('philadelphia') || city.includes('boston') || city.includes('foxborough')) return '-04:00';
-    return '-05:00';
-  }
-
-  function clientKickoffFromLocalDate(localDate, stadium) {
-    const text = clientClean(localDate);
-    if (!text) return null;
-    const match = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
-    if (!match) return text;
-    const [, mm, dd, yyyy, hh, min] = match;
-    return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}T${hh.padStart(2, '0')}:${min}:00${clientOffsetForStadium(stadium)}`;
-  }
-
-  function clientNormalizeTeamName(name) {
-    const aliases = {
-      'czech republic': 'Czechia',
-      'cz republic': 'Czechia',
-      'czechia': 'Czechia',
-      'usa': 'USA',
-      'united states': 'USA',
-      'turkiye': 'Turkey',
-      'turkey': 'Turkey',
-      'ivory coast': 'Ivory Coast',
-      "cote d'ivoire": 'Ivory Coast',
-      'côte d’ivoire': 'Ivory Coast',
-      'dr congo': 'DR Congo',
-      'congo dr': 'DR Congo',
-      'cd congo dr': 'DR Congo',
-      'congo, dr': 'DR Congo',
-      'congo democratic republic': 'DR Congo',
-      'curacao': 'Curacao',
-      'curaçao': 'Curacao',
-    };
-    const raw = clientClean(name);
-    if (!raw) return null;
-    const key = raw.toLowerCase().replace(/[’]/g, "'").replace(/[^a-z0-9']+/g, ' ').trim();
-    return aliases[key] || raw;
-  }
-
-  function clientBuildTeamMaps(teams) {
-    const byId = new Map();
-    teams.forEach((team) => {
-      const id = clientClean(team.id || team.team_id || team._id);
-      const name = clientNormalizeTeamName(team.name_en || team.name || team.team_name || team.name_fa);
-      const entry = {
-        id,
-        name,
-        group: clientClean(team.groups || team.group),
-        fifaCode: clientClean(team.fifa_code),
-        flagUrl: clientClean(team.flag),
-      };
-      if (id) byId.set(String(id), entry);
-    });
-    return { byId };
-  }
-
-  function clientBuildStadiumMap(stadiums) {
-    const byId = new Map();
-    stadiums.forEach((stadium) => {
-      const id = clientClean(stadium.id || stadium.stadium_id || stadium._id);
-      const entry = {
-        id,
-        stadium: clientClean(stadium.name_en || stadium.name || stadium.fifa_name),
-        city: clientClean(stadium.city_en || stadium.city),
-        country: clientClean(stadium.country_en || stadium.country),
-      };
-      if (id) byId.set(String(id), entry);
-    });
-    return byId;
-  }
-
-  function clientShouldShowScore(status) {
-    return ['live', 'finished', 'ft', 'aet', 'pen_finished'].includes(String(status || '').toLowerCase());
-  }
-
-  function clientNormalizeGame(game, teamMaps, stadiumMap) {
-    const stadium = stadiumMap.get(String(game.stadium_id || '')) || {};
-    const homeId = clientClean(game.home_team_id);
-    const awayId = clientClean(game.away_team_id);
-    const homeTeamRecord = homeId && homeId !== '0' ? teamMaps.byId.get(String(homeId)) : null;
-    const awayTeamRecord = awayId && awayId !== '0' ? teamMaps.byId.get(String(awayId)) : null;
-    const homeTeam = clientNormalizeTeamName(homeTeamRecord?.name || game.home_team_name_en || game.home_team_name || game.home_team_label || game.home_label);
-    const awayTeam = clientNormalizeTeamName(awayTeamRecord?.name || game.away_team_name_en || game.away_team_name || game.away_team_label || game.away_label);
-    const status = clientStatusFromGame(game);
-    const showScore = clientShouldShowScore(status);
-    const matchNumber = clientAsNumber(game.id || game.match_id || game.matchNumber);
-    return {
-      apiFixtureId: clientClean(game._id || game.id),
-      matchNumber,
-      homeTeam,
-      awayTeam,
-      homeTeamConfirmed: Boolean(homeTeamRecord || (homeId && homeId !== '0')),
-      awayTeamConfirmed: Boolean(awayTeamRecord || (awayId && awayId !== '0')),
-      homeScore: showScore ? clientAsNumber(game.home_score) : null,
-      awayScore: showScore ? clientAsNumber(game.away_score) : null,
-      homePenalty: clientAsNumber(game.home_penalty || game.home_penalty_score || game.home_penalties || game.home_penalties_score),
-      awayPenalty: clientAsNumber(game.away_penalty || game.away_penalty_score || game.away_penalties || game.away_penalties_score),
-      status,
-      kickoff: clientKickoffFromLocalDate(game.local_date, stadium),
-      stadium: stadium.stadium || clientClean(game.stadium_name),
-      city: stadium.city || clientClean(game.city),
-      country: stadium.country || clientClean(game.country),
-      stage: clientStageFromType(game.type),
-      group: /^[A-L]$/i.test(String(game.group || '')) ? String(game.group).toUpperCase() : null,
-      type: clientClean(game.type),
-      timeElapsed: clientClean(game.time_elapsed),
-    };
-  }
-
-  async function clientFetchJSON(url) {
-    const response = await fetch(url, { cache: 'no-store', headers: { Accept: 'application/json' } });
-    if (!response.ok) throw new Error(`${url} returned ${response.status}`);
-    return response.json();
-  }
-
-  async function fetchProxyWorldCupPayload() {
-    const response = await fetch('/api/worldcup', { cache: 'no-store' });
-    if (!response.ok) throw new Error(`API proxy returned ${response.status}`);
-    const payload = await response.json();
-    if (!payload.ok || !Array.isArray(payload.fixtures) || payload.fixtures.length === 0) throw new Error(payload.message || 'No live fixtures returned');
-    return { ...payload, sourceType: 'serverless proxy' };
-  }
-
-  async function fetchDirectWorldCupPayload() {
-    const base = 'https://worldcup26.ir';
-    const [gamesResult, teamsResult, stadiumsResult, groupsResult] = await Promise.allSettled([
-      clientFetchJSON(`${base}/get/games`),
-      clientFetchJSON(`${base}/get/teams`),
-      clientFetchJSON(`${base}/get/stadiums`),
-      clientFetchJSON(`${base}/get/groups`),
-    ]);
-
-    if (gamesResult.status === 'rejected') throw gamesResult.reason;
-    const games = clientAsArray(gamesResult.value, ['games', 'matches', 'fixtures']);
-    const teams = teamsResult.status === 'fulfilled' ? clientAsArray(teamsResult.value, ['teams']) : [];
-    const stadiums = stadiumsResult.status === 'fulfilled' ? clientAsArray(stadiumsResult.value, ['stadiums']) : [];
-    const teamMaps = clientBuildTeamMaps(teams);
-    const stadiumMap = clientBuildStadiumMap(stadiums);
-    const fixtures = games
-      .map((game) => clientNormalizeGame(game, teamMaps, stadiumMap))
-      .filter((fixture) => fixture.matchNumber && fixture.homeTeam && fixture.awayTeam)
-      .sort((a, b) => a.matchNumber - b.matchNumber);
-
-    if (!fixtures.length) throw new Error('Direct API returned no usable fixtures');
-    return {
-      ok: true,
-      mode: 'worldcup26',
-      provider: 'worldcup26.ir free API',
-      sourceType: 'direct browser API',
-      requiresApiKey: false,
-      fixtures,
-      standings: groupsResult.status === 'fulfilled' ? clientAsArray(groupsResult.value, ['groups', 'tables', 'standings']) : [],
-    };
-  }
-
-  async function fetchWorldCupPayload() {
-    try {
-      return await fetchProxyWorldCupPayload();
-    } catch (proxyError) {
-      const directPayload = await fetchDirectWorldCupPayload();
-      directPayload.proxyError = proxyError?.message || String(proxyError);
-      return directPayload;
-    }
-  }
-
   async function fetchLiveData(manual = false) {
     const statusEl = UI.qs('#apiStatus');
     if (statusEl) statusEl.textContent = manual ? 'Data mode: refreshing live API…' : 'Data mode: checking live API…';
     try {
-      const payload = await fetchWorldCupPayload();
+      const response = await fetch('/api/worldcup', { cache: 'no-store' });
+      if (!response.ok) throw new Error(`API proxy returned ${response.status}`);
+      const payload = await response.json();
+      if (!payload.ok || !Array.isArray(payload.fixtures) || payload.fixtures.length === 0) throw new Error(payload.message || 'No live fixtures returned');
       let merged = 0;
       payload.fixtures.forEach((fixture) => { if (mergeLiveFixture(fixture)) merged += 1; });
-      const sourceLabel = payload.sourceType ? ` via ${payload.sourceType}` : '';
-      state.apiMode = `${payload.provider || 'Live API'} connected${sourceLabel} (${merged} matches synced)`;
+      state.apiMode = `${payload.provider || 'Live API'} connected (${merged} matches synced)`;
       state.lastLiveSync = new Date();
       if (statusEl) statusEl.textContent = `Data mode: ${state.apiMode}`;
       renderAll();
     } catch (error) {
       state.apiMode = 'fallback schedule';
-      const hint = window.location.hostname.includes('github.io')
-        ? ' — GitHub Pages cannot run /api routes; direct API also failed'
-        : (manual ? ' — API not connected yet' : '');
-      if (statusEl) statusEl.textContent = `Data mode: fallback schedule${hint}`;
-      console.warn('Live API refresh failed:', error);
+      if (statusEl) statusEl.textContent = `Data mode: fallback schedule${manual ? ' — API not connected yet' : ''}`;
+      if (manual) console.warn('Live API refresh failed:', error);
     }
   }
 
@@ -807,6 +602,17 @@
       renderCountdowns();
       NOTIFY.tick(state.fixtures);
     }, 1000);
+
+    // Re-render card sections shortly after kickoff, even if the API still reports "scheduled".
+    setInterval(() => {
+      renderFavourite();
+      renderToday();
+      renderFollowedTeams();
+      renderScoreboard();
+      renderResults();
+      renderSchedule();
+      renderCountdowns();
+    }, 30000);
 
     setInterval(() => fetchLiveData(false), 120000);
   }

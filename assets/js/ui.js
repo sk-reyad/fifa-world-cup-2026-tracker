@@ -74,26 +74,69 @@
     return String(fixture?.status || 'scheduled').toLowerCase().replace(/[\s-]+/g, '_');
   }
 
+  const LIVE_STATUSES = [
+    'live', 'inplay', 'in_play', 'started', 'start', 'running', 'playing', 'in_progress', 'inprogress',
+    '1st_half', 'first_half', 'firsthalf', '2nd_half', 'second_half', 'secondhalf',
+    'ht', 'halftime', 'half_time', 'half-time', 'et', 'extra_time', 'extra-time', 'penalties', 'penalty', 'pens'
+  ];
+
+  const FINISHED_STATUSES = [
+    'finished', 'finish', 'ended', 'complete', 'completed', 'closed', 'ft', 'fulltime', 'full_time', 'full-time',
+    'aet', 'after_extra_time', 'after-extra-time', 'pen_finished', 'penalties_finished', 'penalties-finished'
+  ];
+
+  function elapsedMinutesFromKickoff(fixture) {
+    if (!fixture?.kickoff) return null;
+    const kickoff = new Date(fixture.kickoff).getTime();
+    if (!Number.isFinite(kickoff)) return null;
+    const elapsed = Math.floor((Date.now() - kickoff) / 60000);
+    return Number.isFinite(elapsed) ? elapsed : null;
+  }
+
+  function isTimeDerivedLive(fixture) {
+    const status = normalizedStatus(fixture);
+    if (FINISHED_STATUSES.includes(status) || LIVE_STATUSES.includes(status)) return false;
+    const elapsed = elapsedMinutesFromKickoff(fixture);
+    // Keep a scheduled match in live-state for a safe live window after kickoff.
+    // This fixes the UI contradiction where a card said Upcoming while countdown already said Started.
+    return elapsed !== null && elapsed >= 0 && elapsed <= 145;
+  }
+
+  function isTimeDerivedFinished(fixture) {
+    const status = normalizedStatus(fixture);
+    if (FINISHED_STATUSES.includes(status) || LIVE_STATUSES.includes(status)) return false;
+    const elapsed = elapsedMinutesFromKickoff(fixture);
+    return elapsed !== null && elapsed > 145;
+  }
+
   function isLiveFixture(fixture) {
     const status = normalizedStatus(fixture);
-    return ['live', 'inplay', 'in_play', '1st_half', 'first_half', '2nd_half', 'second_half', 'ht', 'halftime', 'half_time', 'et', 'extra_time', 'penalties', 'penalty'].includes(status);
+    return LIVE_STATUSES.includes(status) || isTimeDerivedLive(fixture);
   }
 
   function isFinishedFixture(fixture) {
     const status = normalizedStatus(fixture);
-    return ['finished', 'ft', 'fulltime', 'full_time', 'aet', 'after_extra_time', 'pen_finished', 'penalties_finished'].includes(status);
+    return FINISHED_STATUSES.includes(status) || (scoreAvailable(fixture) && isTimeDerivedFinished(fixture));
   }
 
   function compactMinute(fixture) {
     const raw = String(fixture?.timeElapsed || fixture?.minute || fixture?.elapsed || '').trim();
-    if (!raw) return '';
-    if (/^\d+$/.test(raw)) return `${raw}'`;
-    const low = raw.toLowerCase();
-    if (low.includes('half')) return 'HT';
-    if (low.includes('full')) return 'FT';
-    if (low.includes('extra')) return 'ET';
-    if (low.includes('pen')) return 'PENS';
-    return raw.toUpperCase();
+    if (raw) {
+      if (/^\d+$/.test(raw)) return `${raw}'`;
+      const low = raw.toLowerCase();
+      if (low.includes('half') || low === 'ht') return 'HT';
+      if (low.includes('full') || low === 'ft') return 'FT';
+      if (low.includes('extra')) return 'ET';
+      if (low.includes('pen')) return 'PENS';
+      return raw.toUpperCase();
+    }
+    if (isTimeDerivedLive(fixture)) {
+      const elapsed = elapsedMinutesFromKickoff(fixture);
+      if (elapsed === null) return '';
+      if (elapsed > 90) return `90+${elapsed - 90}'`;
+      return `${Math.max(1, elapsed)}'`;
+    }
+    return '';
   }
 
   function statusLabel(fixture) {
@@ -125,11 +168,11 @@
   function matchCenter(fixture) {
     const status = statusLabel(fixture);
     const score = scoreText(fixture);
-    if ((status.kind === 'live' || status.kind === 'finished') && score) {
+    if (status.kind === 'live' || status.kind === 'finished') {
       return `
         <span class="score-stack ${status.kind === 'live' ? 'score-stack--live' : 'score-stack--final'}">
-          <strong>${score}</strong>
-          <small>${escapeHTML(status.text)}</small>
+          <strong>${score || (status.kind === 'live' ? 'LIVE' : 'FT')}</strong>
+          <small>${score ? escapeHTML(status.text) : 'Score pending'}</small>
           ${penaltyLine(fixture)}
         </span>
       `;
