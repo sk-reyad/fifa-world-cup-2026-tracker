@@ -164,6 +164,8 @@ function normalizeGame(game, teamMaps, stadiumMap) {
     awayTeamConfirmed: Boolean(awayTeamRecord || (awayId && awayId !== '0')),
     homeScore: showScore ? asNumber(game.home_score) : null,
     awayScore: showScore ? asNumber(game.away_score) : null,
+    homePenalty: asNumber(game.home_penalty || game.home_penalty_score || game.home_penalties || game.home_penalties_score),
+    awayPenalty: asNumber(game.away_penalty || game.away_penalty_score || game.away_penalties || game.away_penalties_score),
     status,
     kickoff: kickoffFromLocalDate(game.local_date, stadium),
     stadium: stadium.stadium || clean(game.stadium_name),

@@ -6,19 +6,41 @@
   const FAV = window.WC_FAVOURITES;
   const NOTIFY = window.WC_NOTIFICATIONS;
 
+  const FOLLOWED_KEY = 'wc2026-followed-teams';
+
+  function allTeams() {
+    return FAV.teamsFromGroups(data.groups);
+  }
+
+  function loadFollowedTeams() {
+    const valid = new Set(allTeams());
+    try {
+      const parsed = JSON.parse(localStorage.getItem(FOLLOWED_KEY) || '[]');
+      if (Array.isArray(parsed)) {
+        const clean = [...new Set(parsed.filter((team) => valid.has(team)))];
+        if (clean.length) return clean;
+      }
+    } catch {}
+    return (data.meta.majorTeams || []).filter((team) => valid.has(team));
+  }
+
+  function saveFollowedTeams() {
+    localStorage.setItem(FOLLOWED_KEY, JSON.stringify(state.followedTeams));
+  }
+
   const state = {
     fixtures: typeof structuredClone === 'function' ? structuredClone(data.fixtures) : JSON.parse(JSON.stringify(data.fixtures)),
     groups: data.groups,
     flags: data.flags,
     favouriteTeam: FAV.get(data.meta.defaultFavourite),
+    followedTeams: loadFollowedTeams(),
     search: '',
     filter: 'all',
+    resultTeam: 'all',
     collapsedDays: new Set(),
     apiMode: 'fallback',
     lastLiveSync: null,
   };
-
-  const majorTeams = data.meta.majorTeams;
 
   function fixtureDate(fixture) {
     return new Date(fixture.kickoff);
@@ -29,7 +51,7 @@
   }
 
   function isUpcoming(fixture) {
-    return fixtureDate(fixture).getTime() > Date.now();
+    return fixtureDate(fixture).getTime() > Date.now() && !UI.isLiveFixture(fixture) && !UI.isFinishedFixture(fixture);
   }
 
   function isTodayBST(fixture) {
@@ -41,16 +63,40 @@
     return fixture.homeTeam === team || fixture.awayTeam === team;
   }
 
-  function hasMajorTeam(fixture) {
-    return majorTeams.some((team) => hasTeam(fixture, team));
+  function hasFollowedTeam(fixture) {
+    return state.followedTeams.some((team) => hasTeam(fixture, team));
   }
 
   function nextFixture(fixtures = state.fixtures) {
     return fixtures.filter(isUpcoming).sort((a, b) => fixtureDate(a) - fixtureDate(b))[0] || null;
   }
 
+  function liveFixture(fixtures = state.fixtures) {
+    return fixtures.filter(UI.isLiveFixture).sort((a, b) => fixtureDate(a) - fixtureDate(b))[0] || null;
+  }
+
+  function lastFinishedFixture(fixtures = state.fixtures) {
+    return fixtures
+      .filter((fixture) => UI.isFinishedFixture(fixture) && UI.scoreAvailable(fixture))
+      .sort((a, b) => fixtureDate(b) - fixtureDate(a))[0] || null;
+  }
+
   function nextFixtureForTeam(team) {
     return state.fixtures.filter((fixture) => hasTeam(fixture, team) && isUpcoming(fixture)).sort((a, b) => fixtureDate(a) - fixtureDate(b))[0] || null;
+  }
+
+  function liveFixtureForTeam(team) {
+    return state.fixtures.filter((fixture) => hasTeam(fixture, team) && UI.isLiveFixture(fixture)).sort((a, b) => fixtureDate(a) - fixtureDate(b))[0] || null;
+  }
+
+  function latestFinishedForTeam(team) {
+    return state.fixtures
+      .filter((fixture) => hasTeam(fixture, team) && UI.isFinishedFixture(fixture) && UI.scoreAvailable(fixture))
+      .sort((a, b) => fixtureDate(b) - fixtureDate(a))[0] || null;
+  }
+
+  function focusFixtureForTeam(team) {
+    return liveFixtureForTeam(team) || nextFixtureForTeam(team) || latestFinishedForTeam(team);
   }
 
   function upcomingFixturesForTeam(team) {
@@ -59,14 +105,7 @@
 
   function formatBSTClock() {
     return new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Dhaka',
-      weekday: 'short',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
+      timeZone: 'Asia/Dhaka', weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
     }).format(now());
   }
 
@@ -78,18 +117,65 @@
   function renderFavouriteSelect() {
     const select = UI.qs('#favouriteSelect');
     if (!select) return;
-    const teams = FAV.teamsFromGroups(state.groups);
+    const teams = allTeams();
     select.innerHTML = teams.map((team) => `<option value="${UI.escapeHTML(team)}">${UI.escapeHTML(team)}</option>`).join('');
     select.value = state.favouriteTeam;
   }
 
-  function renderHeroNext() {
-    const fixture = nextFixture();
-    if (!fixture) return;
-    UI.qs('#nextMatchTitle').innerHTML = UI.horizontalMatchTitle(fixture).replace('match-title-horizontal', 'match-title-horizontal hero-match-title');
-    UI.qs('#nextMatchMeta').textContent = `${UI.formatDateTime(fixture)} • ${fixture.stage}${fixture.group ? ` • Group ${fixture.group}` : ''}`;
-    UI.qs('#nextMatchVenue').innerHTML = `${UI.icon('mapPin')} <span>${UI.escapeHTML(UI.fixtureVenue(fixture))}</span>`;
-    COUNTDOWN.renderGrid(fixture.kickoff, UI.qs('#globalCountdown'));
+  function renderResultTeamSelect() {
+    const select = UI.qs('#resultTeamFilter');
+    if (!select) return;
+    const teams = allTeams();
+    select.innerHTML = '<option value="all">All results</option>' + teams.map((team) => `<option value="${UI.escapeHTML(team)}">${UI.escapeHTML(team)}</option>`).join('');
+    select.value = state.resultTeam;
+  }
+
+  function renderFollowedPicker() {
+    const select = UI.qs('#followedTeamPicker');
+    const chips = UI.qs('#followedTeamChips');
+    if (!select || !chips) return;
+    const teams = allTeams();
+    const available = teams.filter((team) => !state.followedTeams.includes(team));
+    select.innerHTML = '<option value="">Select team to follow</option>' + available.map((team) => `<option value="${UI.escapeHTML(team)}">${UI.escapeHTML(team)}</option>`).join('');
+    select.value = '';
+    chips.innerHTML = state.followedTeams.length
+      ? state.followedTeams.map((team) => `
+        <button class="selected-team-chip" type="button" data-remove-followed="${UI.escapeHTML(team)}">
+          ${UI.teamLabel(team, state.flags[team] || 'un')} ${UI.icon('x')}
+        </button>
+      `).join('')
+      : '<span class="empty-chip-note">No followed team selected yet.</span>';
+  }
+
+  function renderHeroDashboard() {
+    const primaryEl = UI.qs('#heroPrimary');
+    const secondaryEl = UI.qs('#heroSecondary');
+    if (!primaryEl || !secondaryEl) return;
+
+    const live = liveFixture();
+    if (live) {
+      primaryEl.innerHTML = UI.heroPanel(live, 'primary', { label: 'Live Match' });
+      const next = nextFixture(state.fixtures.filter((fixture) => fixture.id !== live.id));
+      secondaryEl.innerHTML = UI.heroPanel(next, 'secondary', {
+        label: 'Next Match',
+        emptyTitle: 'No upcoming match found',
+        emptyText: 'The next scheduled match will appear here when available.',
+      });
+      return;
+    }
+
+    const next = nextFixture();
+    const last = lastFinishedFixture();
+    primaryEl.innerHTML = UI.heroPanel(next, 'primary', {
+      label: 'Next Match',
+      emptyTitle: 'No upcoming match found',
+      emptyText: 'The next scheduled fixture will appear here when connected.',
+    });
+    secondaryEl.innerHTML = UI.heroPanel(last, 'secondary', {
+      label: 'Last Finished Result',
+      emptyTitle: 'No finished result yet',
+      emptyText: 'When the first match finishes, its final score will appear here automatically.',
+    });
   }
 
   function renderToday() {
@@ -97,7 +183,7 @@
     const el = UI.qs('#todayMatches');
     if (!el) return;
     el.innerHTML = list.length
-      ? list.map((fixture) => UI.matchCard(fixture, { isFavourite: hasTeam(fixture, state.favouriteTeam), isMajor: hasMajorTeam(fixture) })).join('')
+      ? list.map((fixture) => UI.matchCard(fixture, { isFavourite: hasTeam(fixture, state.favouriteTeam) })).join('')
       : UI.empty(`No World Cup match is scheduled today in Bangladesh time. Next match: ${nextFixture() ? COUNTDOWN.human(nextFixture().kickoff) : 'not available'}.`);
   }
 
@@ -106,57 +192,56 @@
     UI.qs('#favouriteHeading').textContent = `${state.favouriteTeam} Focus`;
     UI.qs('#favouriteBadge').innerHTML = UI.teamLabel(state.favouriteTeam, flag);
 
-    const next = nextFixtureForTeam(state.favouriteTeam);
-    UI.qs('#favouriteFeature').innerHTML = UI.featureCard(next, state.favouriteTeam);
+    const focus = focusFixtureForTeam(state.favouriteTeam);
+    UI.qs('#favouriteFeature').innerHTML = UI.featureCard(focus, state.favouriteTeam);
 
-    const upcoming = upcomingFixturesForTeam(state.favouriteTeam);
-    UI.qs('#favouriteTimeline').innerHTML = upcoming.length
-      ? upcoming.map(UI.timelineItem).join('')
-      : UI.empty(`No upcoming match found for ${state.favouriteTeam}.`);
+    const upcoming = upcomingFixturesForTeam(state.favouriteTeam).filter((fixture) => !focus || fixture.id !== focus.id).slice(0, 3);
+    const finished = latestFinishedForTeam(state.favouriteTeam);
+    const list = upcoming.length ? upcoming : (finished && (!focus || finished.id !== focus.id) ? [finished] : []);
+    const timelineEl = UI.qs('#favouriteTimeline');
+    if (!timelineEl) return;
+    timelineEl.className = `timeline timeline--count-${Math.max(1, Math.min(list.length || 1, 3))}`;
+    timelineEl.innerHTML = list.length
+      ? list.map((fixture) => UI.matchCard(fixture, { isFavourite: true })).join('')
+      : UI.empty(`No additional upcoming match found for ${state.favouriteTeam}.`);
   }
 
-  function renderMajorTeams() {
+  function renderFollowedTeams() {
+    renderFollowedPicker();
     const el = UI.qs('#majorTeams');
     if (!el) return;
-    el.innerHTML = majorTeams.map((team) => {
-      const flag = state.flags[team] || 'un';
-      const fixture = nextFixtureForTeam(team);
-      if (!fixture) {
-        return `<article class="team-watch-card"><h3>${UI.teamLabel(team, flag)}</h3>${UI.empty('No upcoming match found.')}</article>`;
-      }
-      return `
-        <article class="team-watch-card" data-match-id="${UI.escapeHTML(fixture.id)}">
-          <h3>${UI.teamLabel(team, flag)}</h3>
-          ${UI.horizontalMatchTitle(fixture)}
-          ${UI.metaRow(fixture, team === state.favouriteTeam, true)}
-          ${UI.scoreLine(fixture)}
-          <p class="time-line">${UI.icon('clock')} <span>${UI.escapeHTML(UI.formatDateTime(fixture))}</span></p>
-          <p class="venue-line">${UI.icon('mapPin')} <span>${UI.escapeHTML(UI.fixtureVenue(fixture))}</span></p>
-          ${UI.countdownContainer(fixture)}
-        </article>
-      `;
+    if (!state.followedTeams.length) {
+      el.innerHTML = UI.empty('Select one or more teams to start tracking their next matches.');
+      return;
+    }
+    el.innerHTML = state.followedTeams.map((team) => {
+      const fixture = liveFixtureForTeam(team) || nextFixtureForTeam(team);
+      if (!fixture) return `<article class="team-watch-card">${UI.empty(`No upcoming match found for ${team}.`)}</article>`;
+      return UI.matchCard(fixture, { isFavourite: team === state.favouriteTeam });
     }).join('');
   }
 
   function renderScoreboard() {
     const el = UI.qs('#liveScoreboard');
     if (!el) return;
-    const liveOrToday = state.fixtures
-      .filter((fixture) => isTodayBST(fixture) || ['live', 'inplay', '1st_half', '2nd_half', 'ht', 'finished', 'ft'].includes(String(fixture.status).toLowerCase()))
-      .sort((a, b) => fixtureDate(a) - fixtureDate(b))
-      .slice(0, 12);
+    const live = state.fixtures.filter(UI.isLiveFixture);
+    const finishedToday = state.fixtures.filter((fixture) => isTodayBST(fixture) && UI.isFinishedFixture(fixture));
+    const todayUpcoming = state.fixtures.filter((fixture) => isTodayBST(fixture) && isUpcoming(fixture));
+    let list = [...live, ...finishedToday, ...todayUpcoming].sort((a, b) => fixtureDate(a) - fixtureDate(b));
+    if (!list.length) list = state.fixtures.filter(isUpcoming).sort((a, b) => fixtureDate(a) - fixtureDate(b)).slice(0, 6);
+    el.innerHTML = list.slice(0, 12).map((fixture) => UI.matchCard(fixture, { isFavourite: hasTeam(fixture, state.favouriteTeam) })).join('');
+  }
 
-    const fallback = liveOrToday.length ? liveOrToday : state.fixtures.filter(isUpcoming).sort((a, b) => fixtureDate(a) - fixtureDate(b)).slice(0, 6);
-
-    el.innerHTML = fallback.map((fixture) => `
-      <article class="score-card" data-match-id="${UI.escapeHTML(fixture.id)}">
-        ${UI.horizontalMatchTitle(fixture)}
-        ${UI.metaRow(fixture, hasTeam(fixture, state.favouriteTeam), hasMajorTeam(fixture))}
-        ${UI.scoreLine(fixture) || '<p class="venue-line">Score will appear here when live API data is connected.</p>'}
-        <p class="time-line">${UI.icon('clock')} <span>${UI.escapeHTML(UI.formatDateTime(fixture))}</span></p>
-        ${UI.countdownContainer(fixture)}
-      </article>
-    `).join('');
+  function renderResults() {
+    const el = UI.qs('#resultsGrid');
+    if (!el) return;
+    let results = state.fixtures
+      .filter((fixture) => UI.isFinishedFixture(fixture) && UI.scoreAvailable(fixture))
+      .sort((a, b) => fixtureDate(b) - fixtureDate(a));
+    if (state.resultTeam !== 'all') results = results.filter((fixture) => hasTeam(fixture, state.resultTeam));
+    el.innerHTML = results.length
+      ? results.slice(0, 18).map((fixture) => UI.matchCard(fixture, { isFavourite: hasTeam(fixture, state.favouriteTeam) })).join('')
+      : UI.empty('No finished match result is available yet. Final scores will appear here after matches finish.');
   }
 
   function filterFixtures() {
@@ -164,7 +249,7 @@
     let list = [...state.fixtures];
     if (state.filter === 'today') list = list.filter(isTodayBST);
     if (state.filter === 'favourite') list = list.filter((fixture) => hasTeam(fixture, state.favouriteTeam));
-    if (state.filter === 'major') list = list.filter(hasMajorTeam);
+    if (state.filter === 'major') list = list.filter(hasFollowedTeam);
     if (state.filter === 'group') list = list.filter((fixture) => fixture.stage === 'Group Stage');
     if (state.filter === 'knockout') list = list.filter((fixture) => fixture.stage !== 'Group Stage');
     if (term) {
@@ -205,7 +290,7 @@
             <span>${fixtures.length} match${fixtures.length > 1 ? 'es' : ''} • ${UI.escapeHTML(stages)}</span>
           </button>
           <div class="day-content">
-            ${fixtures.map((fixture) => UI.matchCard(fixture, { isFavourite: hasTeam(fixture, state.favouriteTeam), isMajor: hasMajorTeam(fixture) })).join('')}
+            ${fixtures.map((fixture) => UI.matchCard(fixture, { isFavourite: hasTeam(fixture, state.favouriteTeam) })).join('')}
           </div>
         </section>
       `;
@@ -256,9 +341,8 @@
   function renderCountdowns() {
     UI.qsa('[data-countdown]').forEach((el) => {
       const fixture = state.fixtures.find((item) => item.id === el.dataset.countdown);
-      if (fixture) COUNTDOWN.renderGrid(fixture.kickoff, el, el.classList.contains('mini-countdown'));
+      if (fixture) COUNTDOWN.renderGrid(fixture.kickoff, el, el.classList.contains('mini-countdown') || el.classList.contains('hero-mini-countdown'));
     });
-    renderHeroNext();
   }
 
   function bindDynamicClicks() {
@@ -272,6 +356,17 @@
         }
         const enabled = NOTIFY.toggle(notifyBtn.dataset.notifyId);
         notifyBtn.innerHTML = enabled ? `${UI.icon('bell')} <span>Alert On</span>` : `${UI.icon('bellOff')} <span>Notify 20 min before</span>`;
+        return;
+      }
+
+      const removeFollowed = event.target.closest('[data-remove-followed]');
+      if (removeFollowed) {
+        const team = removeFollowed.dataset.removeFollowed;
+        state.followedTeams = state.followedTeams.filter((item) => item !== team);
+        saveFollowedTeams();
+        renderFollowedTeams();
+        renderSchedule();
+        renderCountdowns();
         return;
       }
 
@@ -312,7 +407,6 @@
     updateStickyState();
     window.addEventListener('scroll', updateStickyState, { passive: true });
 
-
     UI.qsa('#siteNav a').forEach((link) => {
       link.addEventListener('click', () => {
         const nav = UI.qs('#siteNav');
@@ -327,6 +421,32 @@
       state.favouriteTeam = event.target.value;
       FAV.set(state.favouriteTeam);
       renderAll();
+    });
+
+    UI.qs('#followedTeamPicker').addEventListener('change', (event) => {
+      const team = event.target.value;
+      if (team && !state.followedTeams.includes(team)) {
+        state.followedTeams.push(team);
+        saveFollowedTeams();
+        renderFollowedTeams();
+        renderSchedule();
+        renderCountdowns();
+      }
+      event.target.value = '';
+    });
+
+    UI.qs('#clearFollowedBtn').addEventListener('click', () => {
+      state.followedTeams = [];
+      saveFollowedTeams();
+      renderFollowedTeams();
+      renderSchedule();
+      renderCountdowns();
+    });
+
+    UI.qs('#resultTeamFilter').addEventListener('change', (event) => {
+      state.resultTeam = event.target.value;
+      renderResults();
+      renderCountdowns();
     });
 
     UI.qs('#scheduleSearch').addEventListener('input', (event) => {
@@ -360,23 +480,12 @@
     UI.qs('#refreshLiveBtn').addEventListener('click', () => fetchLiveData(true));
   }
 
-
   function updateDateLabels(fixture) {
     if (!fixture || !fixture.kickoff) return;
     const date = new Date(fixture.kickoff);
     if (Number.isNaN(date.getTime())) return;
-    fixture.dateLabel = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Dhaka',
-      weekday: 'short',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(date);
-    fixture.timeLabel = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Dhaka',
-      hour: 'numeric',
-      minute: '2-digit',
-    }).format(date);
+    fixture.dateLabel = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Dhaka', weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).format(date);
+    fixture.timeLabel = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Dhaka', hour: 'numeric', minute: '2-digit' }).format(date);
   }
 
   function normalizeName(name) {
@@ -388,19 +497,21 @@
     const liveHome = normalizeName(live.homeTeam);
     const liveAway = normalizeName(live.awayTeam);
     const target = (live.matchNumber ? state.fixtures.find((fixture) => Number(fixture.matchNumber) === Number(live.matchNumber)) : null)
-      || state.fixtures.find((fixture) =>
-        normalizeName(fixture.homeTeam) === liveHome && normalizeName(fixture.awayTeam) === liveAway
-      ) || state.fixtures.find((fixture) =>
-        normalizeName(fixture.homeTeam) === liveAway && normalizeName(fixture.awayTeam) === liveHome
-      );
+      || state.fixtures.find((fixture) => normalizeName(fixture.homeTeam) === liveHome && normalizeName(fixture.awayTeam) === liveAway)
+      || state.fixtures.find((fixture) => normalizeName(fixture.homeTeam) === liveAway && normalizeName(fixture.awayTeam) === liveHome);
     if (!target) return false;
 
     const sameDirection = normalizeName(target.homeTeam) === liveHome;
     target.status = live.status || target.status;
     target.apiFixtureId = live.apiFixtureId || target.apiFixtureId;
+    target.timeElapsed = live.timeElapsed || live.minute || live.elapsed || target.timeElapsed;
     if (Number.isFinite(live.homeScore) && Number.isFinite(live.awayScore)) {
       target.homeScore = sameDirection ? live.homeScore : live.awayScore;
       target.awayScore = sameDirection ? live.awayScore : live.homeScore;
+    }
+    if (Number.isFinite(live.homePenalty) && Number.isFinite(live.awayPenalty)) {
+      target.homePenalty = sameDirection ? live.homePenalty : live.awayPenalty;
+      target.awayPenalty = sameDirection ? live.awayPenalty : live.homePenalty;
     }
     if (live.matchNumber && Number(target.matchNumber) === Number(live.matchNumber)) {
       if (live.homeTeam && (live.homeTeamConfirmed || String(target.homeTeam || '').toLowerCase().includes('winner') || String(target.homeTeam || '').toLowerCase().includes('runner') || String(target.homeTeam || '').toLowerCase().includes('3rd'))) target.homeTeam = live.homeTeam;
@@ -412,6 +523,8 @@
       target.kickoff = live.kickoff;
       updateDateLabels(target);
     }
+    if (live.stage) target.stage = live.stage;
+    if (live.group) target.group = live.group;
     if (live.stadium) {
       target.stadium = live.stadium;
       target.city = live.city || target.city;
@@ -421,37 +534,261 @@
     return true;
   }
 
+
+  function clientAsArray(payload, keys = []) {
+    if (Array.isArray(payload)) return payload;
+    for (const key of keys) {
+      if (Array.isArray(payload?.[key])) return payload[key];
+    }
+    if (Array.isArray(payload?.data)) return payload.data;
+    if (Array.isArray(payload?.result)) return payload.result;
+    return [];
+  }
+
+  function clientClean(value) {
+    if (value === null || value === undefined) return null;
+    const text = String(value).trim();
+    if (!text || text.toLowerCase() === 'null' || text.toLowerCase() === 'undefined') return null;
+    return text;
+  }
+
+  function clientAsNumber(value) {
+    if (value === null || value === undefined || value === '' || value === 'null') return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function clientBoolish(value) {
+    const text = String(value ?? '').trim().toLowerCase();
+    return ['true', '1', 'yes', 'finished', 'ft'].includes(text);
+  }
+
+  function clientStageFromType(type) {
+    const t = String(type || '').trim().toLowerCase();
+    const map = {
+      group: 'Group Stage',
+      r32: 'Round of 32',
+      r16: 'Round of 16',
+      qf: 'Quarterfinals',
+      sf: 'Semifinals',
+      third: 'Third Place Play-off',
+      final: 'Final',
+    };
+    return map[t] || (t ? t.toUpperCase() : 'World Cup');
+  }
+
+  function clientStatusFromGame(game) {
+    if (clientBoolish(game.finished)) return 'finished';
+    const elapsed = String(game.time_elapsed || game.status || '').trim().toLowerCase();
+    if (!elapsed || elapsed === 'notstarted' || elapsed === 'not_started' || elapsed === 'scheduled') return 'scheduled';
+    if (elapsed.includes('half') || elapsed.includes('live') || elapsed.includes('1st') || elapsed.includes('2nd') || /^\d+$/.test(elapsed)) return 'live';
+    return elapsed;
+  }
+
+  function clientOffsetForStadium(stadium = {}) {
+    const id = String(stadium.id || stadium.stadium_id || '');
+    const city = String(stadium.city_en || stadium.city || '').toLowerCase();
+    const country = String(stadium.country_en || stadium.country || '').toLowerCase();
+    if (country.includes('mexico') || ['1', '2', '3'].includes(id) || city.includes('mexico') || city.includes('guadalajara') || city.includes('monterrey')) return '-06:00';
+    if (city.includes('vancouver') || city.includes('los angeles') || city.includes('inglewood') || city.includes('seattle') || city.includes('san francisco') || city.includes('santa clara')) return '-07:00';
+    if (city.includes('dallas') || city.includes('arlington') || city.includes('houston') || city.includes('kansas')) return '-05:00';
+    if (city.includes('toronto') || city.includes('east rutherford') || city.includes('new york') || city.includes('miami') || city.includes('atlanta') || city.includes('philadelphia') || city.includes('boston') || city.includes('foxborough')) return '-04:00';
+    return '-05:00';
+  }
+
+  function clientKickoffFromLocalDate(localDate, stadium) {
+    const text = clientClean(localDate);
+    if (!text) return null;
+    const match = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
+    if (!match) return text;
+    const [, mm, dd, yyyy, hh, min] = match;
+    return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}T${hh.padStart(2, '0')}:${min}:00${clientOffsetForStadium(stadium)}`;
+  }
+
+  function clientNormalizeTeamName(name) {
+    const aliases = {
+      'czech republic': 'Czechia',
+      'cz republic': 'Czechia',
+      'czechia': 'Czechia',
+      'usa': 'USA',
+      'united states': 'USA',
+      'turkiye': 'Turkey',
+      'turkey': 'Turkey',
+      'ivory coast': 'Ivory Coast',
+      "cote d'ivoire": 'Ivory Coast',
+      'côte d’ivoire': 'Ivory Coast',
+      'dr congo': 'DR Congo',
+      'congo dr': 'DR Congo',
+      'cd congo dr': 'DR Congo',
+      'congo, dr': 'DR Congo',
+      'congo democratic republic': 'DR Congo',
+      'curacao': 'Curacao',
+      'curaçao': 'Curacao',
+    };
+    const raw = clientClean(name);
+    if (!raw) return null;
+    const key = raw.toLowerCase().replace(/[’]/g, "'").replace(/[^a-z0-9']+/g, ' ').trim();
+    return aliases[key] || raw;
+  }
+
+  function clientBuildTeamMaps(teams) {
+    const byId = new Map();
+    teams.forEach((team) => {
+      const id = clientClean(team.id || team.team_id || team._id);
+      const name = clientNormalizeTeamName(team.name_en || team.name || team.team_name || team.name_fa);
+      const entry = {
+        id,
+        name,
+        group: clientClean(team.groups || team.group),
+        fifaCode: clientClean(team.fifa_code),
+        flagUrl: clientClean(team.flag),
+      };
+      if (id) byId.set(String(id), entry);
+    });
+    return { byId };
+  }
+
+  function clientBuildStadiumMap(stadiums) {
+    const byId = new Map();
+    stadiums.forEach((stadium) => {
+      const id = clientClean(stadium.id || stadium.stadium_id || stadium._id);
+      const entry = {
+        id,
+        stadium: clientClean(stadium.name_en || stadium.name || stadium.fifa_name),
+        city: clientClean(stadium.city_en || stadium.city),
+        country: clientClean(stadium.country_en || stadium.country),
+      };
+      if (id) byId.set(String(id), entry);
+    });
+    return byId;
+  }
+
+  function clientShouldShowScore(status) {
+    return ['live', 'finished', 'ft', 'aet', 'pen_finished'].includes(String(status || '').toLowerCase());
+  }
+
+  function clientNormalizeGame(game, teamMaps, stadiumMap) {
+    const stadium = stadiumMap.get(String(game.stadium_id || '')) || {};
+    const homeId = clientClean(game.home_team_id);
+    const awayId = clientClean(game.away_team_id);
+    const homeTeamRecord = homeId && homeId !== '0' ? teamMaps.byId.get(String(homeId)) : null;
+    const awayTeamRecord = awayId && awayId !== '0' ? teamMaps.byId.get(String(awayId)) : null;
+    const homeTeam = clientNormalizeTeamName(homeTeamRecord?.name || game.home_team_name_en || game.home_team_name || game.home_team_label || game.home_label);
+    const awayTeam = clientNormalizeTeamName(awayTeamRecord?.name || game.away_team_name_en || game.away_team_name || game.away_team_label || game.away_label);
+    const status = clientStatusFromGame(game);
+    const showScore = clientShouldShowScore(status);
+    const matchNumber = clientAsNumber(game.id || game.match_id || game.matchNumber);
+    return {
+      apiFixtureId: clientClean(game._id || game.id),
+      matchNumber,
+      homeTeam,
+      awayTeam,
+      homeTeamConfirmed: Boolean(homeTeamRecord || (homeId && homeId !== '0')),
+      awayTeamConfirmed: Boolean(awayTeamRecord || (awayId && awayId !== '0')),
+      homeScore: showScore ? clientAsNumber(game.home_score) : null,
+      awayScore: showScore ? clientAsNumber(game.away_score) : null,
+      homePenalty: clientAsNumber(game.home_penalty || game.home_penalty_score || game.home_penalties || game.home_penalties_score),
+      awayPenalty: clientAsNumber(game.away_penalty || game.away_penalty_score || game.away_penalties || game.away_penalties_score),
+      status,
+      kickoff: clientKickoffFromLocalDate(game.local_date, stadium),
+      stadium: stadium.stadium || clientClean(game.stadium_name),
+      city: stadium.city || clientClean(game.city),
+      country: stadium.country || clientClean(game.country),
+      stage: clientStageFromType(game.type),
+      group: /^[A-L]$/i.test(String(game.group || '')) ? String(game.group).toUpperCase() : null,
+      type: clientClean(game.type),
+      timeElapsed: clientClean(game.time_elapsed),
+    };
+  }
+
+  async function clientFetchJSON(url) {
+    const response = await fetch(url, { cache: 'no-store', headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(`${url} returned ${response.status}`);
+    return response.json();
+  }
+
+  async function fetchProxyWorldCupPayload() {
+    const response = await fetch('/api/worldcup', { cache: 'no-store' });
+    if (!response.ok) throw new Error(`API proxy returned ${response.status}`);
+    const payload = await response.json();
+    if (!payload.ok || !Array.isArray(payload.fixtures) || payload.fixtures.length === 0) throw new Error(payload.message || 'No live fixtures returned');
+    return { ...payload, sourceType: 'serverless proxy' };
+  }
+
+  async function fetchDirectWorldCupPayload() {
+    const base = 'https://worldcup26.ir';
+    const [gamesResult, teamsResult, stadiumsResult, groupsResult] = await Promise.allSettled([
+      clientFetchJSON(`${base}/get/games`),
+      clientFetchJSON(`${base}/get/teams`),
+      clientFetchJSON(`${base}/get/stadiums`),
+      clientFetchJSON(`${base}/get/groups`),
+    ]);
+
+    if (gamesResult.status === 'rejected') throw gamesResult.reason;
+    const games = clientAsArray(gamesResult.value, ['games', 'matches', 'fixtures']);
+    const teams = teamsResult.status === 'fulfilled' ? clientAsArray(teamsResult.value, ['teams']) : [];
+    const stadiums = stadiumsResult.status === 'fulfilled' ? clientAsArray(stadiumsResult.value, ['stadiums']) : [];
+    const teamMaps = clientBuildTeamMaps(teams);
+    const stadiumMap = clientBuildStadiumMap(stadiums);
+    const fixtures = games
+      .map((game) => clientNormalizeGame(game, teamMaps, stadiumMap))
+      .filter((fixture) => fixture.matchNumber && fixture.homeTeam && fixture.awayTeam)
+      .sort((a, b) => a.matchNumber - b.matchNumber);
+
+    if (!fixtures.length) throw new Error('Direct API returned no usable fixtures');
+    return {
+      ok: true,
+      mode: 'worldcup26',
+      provider: 'worldcup26.ir free API',
+      sourceType: 'direct browser API',
+      requiresApiKey: false,
+      fixtures,
+      standings: groupsResult.status === 'fulfilled' ? clientAsArray(groupsResult.value, ['groups', 'tables', 'standings']) : [],
+    };
+  }
+
+  async function fetchWorldCupPayload() {
+    try {
+      return await fetchProxyWorldCupPayload();
+    } catch (proxyError) {
+      const directPayload = await fetchDirectWorldCupPayload();
+      directPayload.proxyError = proxyError?.message || String(proxyError);
+      return directPayload;
+    }
+  }
+
   async function fetchLiveData(manual = false) {
     const statusEl = UI.qs('#apiStatus');
     if (statusEl) statusEl.textContent = manual ? 'Data mode: refreshing live API…' : 'Data mode: checking live API…';
     try {
-      const response = await fetch('/api/worldcup', { cache: 'no-store' });
-      if (!response.ok) throw new Error(`API proxy returned ${response.status}`);
-      const payload = await response.json();
-      if (!payload.ok || !Array.isArray(payload.fixtures) || payload.fixtures.length === 0) {
-        throw new Error(payload.message || 'No live fixtures returned');
-      }
+      const payload = await fetchWorldCupPayload();
       let merged = 0;
       payload.fixtures.forEach((fixture) => { if (mergeLiveFixture(fixture)) merged += 1; });
-      state.apiMode = `${payload.provider || 'Live API'} connected (${merged} matches synced)`;
+      const sourceLabel = payload.sourceType ? ` via ${payload.sourceType}` : '';
+      state.apiMode = `${payload.provider || 'Live API'} connected${sourceLabel} (${merged} matches synced)`;
       state.lastLiveSync = new Date();
       if (statusEl) statusEl.textContent = `Data mode: ${state.apiMode}`;
       renderAll();
     } catch (error) {
       state.apiMode = 'fallback schedule';
-      if (statusEl) statusEl.textContent = `Data mode: fallback schedule${manual ? ' — API not connected yet' : ''}`;
-      if (manual) console.warn('Live API refresh failed:', error);
+      const hint = window.location.hostname.includes('github.io')
+        ? ' — GitHub Pages cannot run /api routes; direct API also failed'
+        : (manual ? ' — API not connected yet' : '');
+      if (statusEl) statusEl.textContent = `Data mode: fallback schedule${hint}`;
+      console.warn('Live API refresh failed:', error);
     }
   }
 
   function renderAll() {
     renderClock();
     renderFavouriteSelect();
-    renderHeroNext();
-    renderToday();
+    renderResultTeamSelect();
+    renderHeroDashboard();
     renderFavourite();
-    renderMajorTeams();
+    renderToday();
+    renderFollowedTeams();
     renderScoreboard();
+    renderResults();
     renderSchedule();
     renderStandings();
     renderGroups();
@@ -466,6 +803,7 @@
 
     setInterval(() => {
       renderClock();
+      renderHeroDashboard();
       renderCountdowns();
       NOTIFY.tick(state.fixtures);
     }, 1000);

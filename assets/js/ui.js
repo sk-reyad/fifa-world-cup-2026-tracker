@@ -19,13 +19,18 @@
     moon: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.3 8.3 0 0 1 8.8 3.5 8.8 8.8 0 1 0 20.5 15.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
     sun: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
     menu: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
-    close: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+    close: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+    calendar: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v4M17 3v4M4.5 9.5h15M6.5 5h11A2.5 2.5 0 0 1 20 7.5v10A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5v-10A2.5 2.5 0 0 1 6.5 5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    search: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16.2 16.2 4.1 4.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    trophy: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v3.5A4 4 0 0 1 12 11.5a4 4 0 0 1-4-4V4Z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 5H5.5A2.5 2.5 0 0 0 8 9.2M16 5h2.5A2.5 2.5 0 0 1 16 9.2M12 11.5V16M8.5 20h7M10 16h4l.8 4H9.2l.8-4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    live: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M7 7a7 7 0 0 0 0 10M17 7a7 7 0 0 1 0 10M4 4a11 11 0 0 0 0 16M20 4a11 11 0 0 1 0 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    plus: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+    x: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
   };
 
   function icon(name) {
     return ICONS[name] || '';
   }
-
 
   const FLAG_CDN_BASE = 'https://flagcdn.com';
 
@@ -37,96 +42,160 @@
     return `${FLAG_CDN_BASE}/${safeCode || 'un'}.svg`;
   }
 
-  function flagImage(flagCodeOrUrl, team) {
-    return `<img class="flag-icon" src="${flagSource(flagCodeOrUrl)}" alt="${escapeHTML(team)} flag" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
+  function flagImage(flagCodeOrUrl, team, className = 'flag-icon') {
+    return `<img class="${className}" src="${flagSource(flagCodeOrUrl)}" alt="${escapeHTML(team)} flag" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
   }
 
   function teamLabel(team, flag, mode = 'horizontal-left') {
     const safeTeam = `<span class="team-name-text">${escapeHTML(team)}</span>`;
-    const icon = flagImage(flag, team);
-    if (mode === 'horizontal-right') {
-      return `<span class="team-label team-label--right">${safeTeam} ${icon}</span>`;
-    }
-    return `<span class="team-label team-label--left">${icon} ${safeTeam}</span>`;
-  }
-  function horizontalMatchTitle(fixture) {
-    return `
-      <div class="match-title-horizontal">
-        <span>${teamLabel(fixture.homeTeam, fixture.homeFlag, 'horizontal-left')}</span>
-        <span>vs</span>
-        <span>${teamLabel(fixture.awayTeam, fixture.awayFlag, 'horizontal-right')}</span>
-      </div>
-    `;
-  }
-
-  function verticalMatchTitle(fixture) {
-    return `
-      <div class="match-title-vertical">
-        <strong>${teamLabel(fixture.homeTeam, fixture.homeFlag)}</strong>
-        <span class="vs-badge">VS</span>
-        <strong>${teamLabel(fixture.awayTeam, fixture.awayFlag)}</strong>
-      </div>
-    `;
+    const flagEl = flagImage(flag, team);
+    if (mode === 'horizontal-right') return `<span class="team-label team-label--right">${safeTeam} ${flagEl}</span>`;
+    return `<span class="team-label team-label--left">${flagEl} ${safeTeam}</span>`;
   }
 
   function fixtureVenue(fixture) {
-    if (fixture.apiVenue) return fixture.apiVenue;
-    return [fixture.stadium, fixture.city, fixture.country].filter(Boolean).join(', ');
+    if (fixture?.apiVenue) return fixture.apiVenue;
+    return [fixture?.stadium, fixture?.city, fixture?.country].filter(Boolean).join(', ');
   }
 
   function formatDateTime(fixture) {
     return `${fixture.dateLabel} • ${fixture.timeLabel} BST`;
   }
 
+  function scoreAvailable(fixture) {
+    return Number.isFinite(fixture?.homeScore) && Number.isFinite(fixture?.awayScore);
+  }
+
+  function penaltyAvailable(fixture) {
+    return Number.isFinite(fixture?.homePenalty) && Number.isFinite(fixture?.awayPenalty);
+  }
+
+  function normalizedStatus(fixture) {
+    return String(fixture?.status || 'scheduled').toLowerCase().replace(/[\s-]+/g, '_');
+  }
+
+  function isLiveFixture(fixture) {
+    const status = normalizedStatus(fixture);
+    return ['live', 'inplay', 'in_play', '1st_half', 'first_half', '2nd_half', 'second_half', 'ht', 'halftime', 'half_time', 'et', 'extra_time', 'penalties', 'penalty'].includes(status);
+  }
+
+  function isFinishedFixture(fixture) {
+    const status = normalizedStatus(fixture);
+    return ['finished', 'ft', 'fulltime', 'full_time', 'aet', 'after_extra_time', 'pen_finished', 'penalties_finished'].includes(status);
+  }
+
+  function compactMinute(fixture) {
+    const raw = String(fixture?.timeElapsed || fixture?.minute || fixture?.elapsed || '').trim();
+    if (!raw) return '';
+    if (/^\d+$/.test(raw)) return `${raw}'`;
+    const low = raw.toLowerCase();
+    if (low.includes('half')) return 'HT';
+    if (low.includes('full')) return 'FT';
+    if (low.includes('extra')) return 'ET';
+    if (low.includes('pen')) return 'PENS';
+    return raw.toUpperCase();
+  }
+
   function statusLabel(fixture) {
-    const status = String(fixture.status || 'scheduled').toLowerCase();
-    if (['live', 'inplay', '1st_half', '2nd_half', 'ht'].includes(status)) return { text: 'LIVE', className: 'status-live' };
-    if (['finished', 'ft', 'aet', 'pen_finished'].includes(status)) return { text: 'Finished', className: 'status-finished' };
-    return { text: 'Upcoming', className: 'status-upcoming' };
-  }
-
-  function scoreLine(fixture) {
-    if (Number.isFinite(fixture.homeScore) && Number.isFinite(fixture.awayScore)) {
-      return `<div class="score-line">${escapeHTML(fixture.homeScore)} - ${escapeHTML(fixture.awayScore)}</div>`;
+    const status = normalizedStatus(fixture);
+    const minute = compactMinute(fixture);
+    if (isLiveFixture(fixture)) {
+      if (['ht', 'halftime', 'half_time'].includes(status)) return { text: 'HT', detail: 'Half-time', className: 'status-live', kind: 'live' };
+      if (['et', 'extra_time'].includes(status)) return { text: minute || 'ET', detail: 'Extra time', className: 'status-live', kind: 'live' };
+      if (['penalties', 'penalty'].includes(status)) return { text: 'PENS', detail: 'Penalty shootout', className: 'status-live', kind: 'live' };
+      return { text: minute ? `${minute} LIVE` : 'LIVE', detail: 'Live now', className: 'status-live', kind: 'live' };
     }
-    return '';
+    if (isFinishedFixture(fixture)) {
+      if (['aet', 'after_extra_time'].includes(status)) return { text: 'AET', detail: 'After extra time', className: 'status-finished', kind: 'finished' };
+      if (['pen_finished', 'penalties_finished'].includes(status)) return { text: 'FT', detail: 'Decided on penalties', className: 'status-finished', kind: 'finished' };
+      return { text: 'FT', detail: 'Full-time', className: 'status-finished', kind: 'finished' };
+    }
+    return { text: 'Upcoming', detail: 'Scheduled', className: 'status-upcoming', kind: 'upcoming' };
   }
 
-  function metaRow(fixture, isFavourite = false, isMajor = false) {
+  function scoreText(fixture) {
+    return scoreAvailable(fixture) ? `${escapeHTML(fixture.homeScore)} - ${escapeHTML(fixture.awayScore)}` : '';
+  }
+
+  function penaltyLine(fixture) {
+    if (!penaltyAvailable(fixture)) return '';
+    return `<small class="penalty-line">Pens: ${escapeHTML(fixture.homePenalty)} - ${escapeHTML(fixture.awayPenalty)}</small>`;
+  }
+
+  function matchCenter(fixture) {
+    const status = statusLabel(fixture);
+    const score = scoreText(fixture);
+    if ((status.kind === 'live' || status.kind === 'finished') && score) {
+      return `
+        <span class="score-stack ${status.kind === 'live' ? 'score-stack--live' : 'score-stack--final'}">
+          <strong>${score}</strong>
+          <small>${escapeHTML(status.text)}</small>
+          ${penaltyLine(fixture)}
+        </span>
+      `;
+    }
+    return '<span class="vs-badge">VS</span>';
+  }
+
+  function horizontalMatchTitle(fixture, variant = '') {
+    return `
+      <div class="match-title-horizontal ${variant}">
+        <span class="team-side team-side--home">${teamLabel(fixture.homeTeam, fixture.homeFlag, 'horizontal-left')}</span>
+        <span class="match-center">${matchCenter(fixture)}</span>
+        <span class="team-side team-side--away">${teamLabel(fixture.awayTeam, fixture.awayFlag, 'horizontal-right')}</span>
+      </div>
+    `;
+  }
+
+  function verticalMatchTitle(fixture) {
+    return horizontalMatchTitle(fixture, 'match-title-feature');
+  }
+
+  function metaRow(fixture, isFavourite = false) {
     const status = statusLabel(fixture);
     return `
       <div class="meta-row">
-        <span class="status-pill ${status.className}">${status.text}</span>
-        <span>Match ${fixture.matchNumber}</span>
+        <span class="status-pill ${status.className}">${escapeHTML(status.text)}</span>
+        <span>Match ${escapeHTML(fixture.matchNumber)}</span>
         <span>${escapeHTML(fixture.stage)}</span>
         ${fixture.group ? `<span>Group ${escapeHTML(fixture.group)}</span>` : ''}
         ${isFavourite ? '<span>Favourite</span>' : ''}
-        ${isMajor ? '<span>Major team</span>' : ''}
       </div>
     `;
   }
 
   function notifyButton(fixture) {
-    if (!window.WC_NOTIFICATIONS) return '';
+    if (!window.WC_NOTIFICATIONS || isLiveFixture(fixture) || isFinishedFixture(fixture)) return '';
     const active = window.WC_NOTIFICATIONS.isEnabled(fixture.id);
     return `<button class="chip-button notify-btn" data-notify-id="${escapeHTML(fixture.id)}" type="button">${active ? `${icon('bell')} <span>Alert On</span>` : `${icon('bellOff')} <span>Notify 20 min before</span>`}</button>`;
   }
 
   function countdownContainer(fixture, className = 'mini-countdown') {
+    if (isLiveFixture(fixture) || isFinishedFixture(fixture)) return '';
     return `<div class="${className}" data-countdown="${escapeHTML(fixture.id)}"></div>`;
+  }
+
+  function detailLine(fixture) {
+    const status = statusLabel(fixture);
+    const venue = fixtureVenue(fixture);
+    if (status.kind === 'live' && !scoreAvailable(fixture)) {
+      return `<p class="state-line state-line--live">${icon('live')} <span>Live data connected. Score will appear as soon as the API returns it.</span></p>`;
+    }
+    if (status.kind === 'finished' && !scoreAvailable(fixture)) {
+      return '<p class="state-line">Final result will appear when score data is available.</p>';
+    }
+    return `<p class="venue-line">${icon('mapPin')} <span>${escapeHTML(venue)}</span></p>`;
   }
 
   function matchCard(fixture, options = {}) {
     const favClass = options.isFavourite ? ' favourite' : '';
-    const majorClass = options.isMajor ? ' major' : '';
-    const title = options.vertical ? verticalMatchTitle(fixture) : horizontalMatchTitle(fixture);
+    const status = statusLabel(fixture);
     return `
-      <article class="match-card${favClass}${majorClass}" data-match-id="${escapeHTML(fixture.id)}">
-        ${title}
-        ${metaRow(fixture, options.isFavourite, options.isMajor)}
-        ${scoreLine(fixture)}
+      <article class="match-card${favClass} match-card--${status.kind}" data-match-id="${escapeHTML(fixture.id)}">
+        ${horizontalMatchTitle(fixture)}
+        ${metaRow(fixture, options.isFavourite)}
         <p class="time-line">${icon('clock')} <span>${escapeHTML(formatDateTime(fixture))}</span></p>
-        <p class="venue-line">${icon('mapPin')} <span>${escapeHTML(fixtureVenue(fixture))}</span></p>
+        ${detailLine(fixture)}
         ${countdownContainer(fixture)}
         ${notifyButton(fixture)}
       </article>
@@ -134,18 +203,16 @@
   }
 
   function featureCard(fixture, favouriteTeam) {
-    if (!fixture) {
-      return `<div class="empty-state">No upcoming match found for ${escapeHTML(favouriteTeam)}.</div>`;
-    }
+    if (!fixture) return `<div class="empty-state">No match found for ${escapeHTML(favouriteTeam)} yet.</div>`;
     return `
-      <div>
-        <p class="eyebrow">Next ${escapeHTML(favouriteTeam)} Match</p>
-        ${verticalMatchTitle(fixture)}
+      <div class="feature-main-copy">
+        <p class="eyebrow">Priority team focus</p>
+        <h3>${escapeHTML(favouriteTeam)} Match Focus</h3>
+        <p>${escapeHTML(statusLabel(fixture).detail)} • ${escapeHTML(formatDateTime(fixture))}</p>
       </div>
-      <div>
-        ${metaRow(fixture, true, false)}
-        ${scoreLine(fixture)}
-        <p class="time-line">${icon('clock')} <span>${escapeHTML(formatDateTime(fixture))}</span></p>
+      <div class="feature-match-body">
+        ${horizontalMatchTitle(fixture, 'match-title-feature')}
+        ${metaRow(fixture, true)}
         <p class="venue-line">${icon('mapPin')} <span>${escapeHTML(fixtureVenue(fixture))}</span></p>
         ${countdownContainer(fixture, 'countdown-grid')}
         ${notifyButton(fixture)}
@@ -154,15 +221,34 @@
   }
 
   function timelineItem(fixture) {
+    return matchCard(fixture);
+  }
+
+  function heroPanel(fixture, type, options = {}) {
+    const label = options.label || 'Match Focus';
+    const isLive = fixture && statusLabel(fixture).kind === 'live';
+    if (!fixture) {
+      return `
+        <div class="hero-panel-inner hero-panel-empty">
+          <p class="eyebrow">${escapeHTML(label)}</p>
+          <h2>${escapeHTML(options.emptyTitle || 'No match data yet')}</h2>
+          <p>${escapeHTML(options.emptyText || 'This panel will update automatically when match data is available.')}</p>
+        </div>
+      `;
+    }
     return `
-      <article class="timeline-item" data-match-id="${escapeHTML(fixture.id)}">
-        ${horizontalMatchTitle(fixture)}
-        ${metaRow(fixture)}
-        ${scoreLine(fixture)}
-        <p class="time-line">${icon('clock')} <span>${escapeHTML(formatDateTime(fixture))}</span></p>
-        <p class="venue-line">${icon('mapPin')} <span>${escapeHTML(fixtureVenue(fixture))}</span></p>
-        ${countdownContainer(fixture)}
-      </article>
+      <div class="hero-panel-inner ${isLive ? 'is-live-panel' : ''}">
+        <div class="hero-panel-topline">
+          <span class="panel-kicker ${isLive ? 'panel-kicker--live' : ''}">${isLive ? `${icon('live')} <span>LIVE MATCH</span>` : escapeHTML(label)}</span>
+          <span class="panel-stage">${escapeHTML(fixture.stage)}${fixture.group ? ` • Group ${escapeHTML(fixture.group)}` : ''}</span>
+        </div>
+        ${horizontalMatchTitle(fixture, 'hero-match-title')}
+        <div class="hero-panel-meta">
+          <span>${icon('calendar')} ${escapeHTML(formatDateTime(fixture))}</span>
+          <span>${icon('mapPin')} ${escapeHTML(fixtureVenue(fixture))}</span>
+        </div>
+        ${countdownContainer(fixture, type === 'primary' ? 'countdown-grid hero-countdown' : 'mini-countdown hero-mini-countdown')}
+      </div>
     `;
   }
 
@@ -172,7 +258,7 @@
 
   window.WC_UI = {
     qs, qsa, escapeHTML, icon, flagSource, flagImage, teamLabel, horizontalMatchTitle, verticalMatchTitle,
-    fixtureVenue, formatDateTime, statusLabel, scoreLine, metaRow,
-    notifyButton, countdownContainer, matchCard, featureCard, timelineItem, empty,
+    fixtureVenue, formatDateTime, statusLabel, scoreAvailable, penaltyAvailable, isLiveFixture, isFinishedFixture,
+    matchCenter, penaltyLine, metaRow, notifyButton, countdownContainer, matchCard, featureCard, timelineItem, heroPanel, empty,
   };
 })();

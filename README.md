@@ -5,12 +5,14 @@ This is a clean rebuild of the FIFA World Cup 2026 BST Match Tracker.
 What is included:
 
 - Football-themed responsive website
-- Batch 1 UI refinement: sticky navbar, top status bar, proper SVG icons, improved background, relocated controls, dropdown visual fixes
+- Batch 1 UI refinement: sticky navbar, top status bar, proper SVG icons, improved background base, relocated controls, dropdown visual fixes
+- Batch 2 UI refinement: match-focused hero auto-shift, unified score/card layout, redesigned favourite section, dynamic followed teams, results section, improved live/finished score display, stronger light-mode background treatment
 - Bangladesh Standard Time display
-- Today’s matches
-- Global and per-match countdowns
+- Today’s matches with upcoming/live/finished card states
+- Global and per-match countdowns with fixed countdown boxes
 - Dynamic favourite team selector inside the Favourite Team section, default Brazil
-- Major teams quick-watch section
+- Dynamic followed teams section replacing the old static major-teams watchlist
+- Results section for finished matches when score data is available
 - Full schedule with search and filters inside the Schedule section toolbar
 - Group standings calculated from available results
 - Groups A–L with flags
@@ -50,7 +52,7 @@ After extracting, push with:
 
 ```powershell
 git add -A
-git commit -m "Refine navbar status bar icons and controls"
+git commit -m "Add hero auto shift cards results and followed teams"
 git push
 ```
 
@@ -89,3 +91,16 @@ If the free API returns no data, the main website still works using local fallba
 ## Flag rendering
 
 Team flags are rendered as SVG images through FlagCDN URLs such as `https://flagcdn.com/br.svg`, not as emoji flags. This avoids broken flag emoji rendering on Windows/browser combinations.
+
+## Patch after Batch 2
+
+- Added a stronger API loading fallback: the app tries the Vercel serverless `/api/worldcup` route first, then tries the free `worldcup26.ir` browser endpoint directly before using local fallback data.
+- Improved the Favourite Team timeline grid so two related matches fill the available row instead of leaving an empty third column.
+
+Suggested commit message:
+
+```bash
+git add -A
+git commit -m "Fix API loading and favourite timeline layout"
+git push
+```

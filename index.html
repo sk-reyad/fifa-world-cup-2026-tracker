@@ -56,41 +56,13 @@
     </div>
 
     <main>
-      <section class="hero section-pad">
-        <div class="hero-content">
-          <p class="eyebrow">Bangladesh Standard Time • 104 match dashboard</p>
-          <h1>FIFA World Cup 2026 Match Tracker</h1>
-          <p class="hero-text">See today’s matches, live countdowns, favourite team focus, group standings, knockout placeholders and free API-ready updates from one clean dashboard.</p>
-          <div class="hero-actions">
-            <a class="primary-btn" href="#schedule">View Full Schedule</a>
-            <a class="secondary-btn" href="#standings">Check Standings</a>
-          </div>
-        </div>
-
-        <div class="next-card" aria-label="Next match countdown">
-          <div class="card-topline">
-            <span class="live-dot"></span>
-            <span>Next Match</span>
-          </div>
-          <h2 id="nextMatchTitle">Loading…</h2>
-          <p id="nextMatchMeta">Calculating next kickoff in BST</p>
-          <div class="countdown-grid" id="globalCountdown">
-            <span><strong>--</strong><small>Days</small></span>
-            <span><strong>--</strong><small>Hours</small></span>
-            <span><strong>--</strong><small>Minutes</small></span>
-            <span><strong>--</strong><small>Seconds</small></span>
-          </div>
-          <p class="mini-note" id="nextMatchVenue">Venue loading…</p>
-        </div>
-      </section>
-
-      <section class="section-pad" id="today">
-        <div class="section-heading">
-          <p class="eyebrow">Today in BST</p>
-          <h2>Today’s Matches</h2>
-          <p>Auto-detected by Bangladesh date. Every match card includes its own live countdown/status.</p>
-        </div>
-        <div class="match-grid" id="todayMatches"></div>
+      <section class="hero section-pad hero-dashboard" aria-label="Match dashboard hero">
+        <article class="hero-panel hero-panel-primary" id="heroPrimary">
+          <div class="empty-state">Loading primary match panel…</div>
+        </article>
+        <article class="hero-panel hero-panel-secondary" id="heroSecondary">
+          <div class="empty-state">Loading secondary match panel…</div>
+        </article>
       </section>
 
       <section class="section-pad" id="favourite">
@@ -114,12 +86,31 @@
         </div>
       </section>
 
-      <section class="section-pad" id="major">
+      <section class="section-pad" id="today">
         <div class="section-heading">
-          <p class="eyebrow">Quick watch</p>
-          <h2>Major Teams Next Matches</h2>
-          <p>Argentina, Germany, France, Spain, England and Portugal are grouped here for quick tracking.</p>
+          <p class="eyebrow">Today in BST</p>
+          <h2>Today’s Matches</h2>
+          <p>Auto-detected by Bangladesh date. Cards switch between countdown, live score, and final result automatically.</p>
         </div>
+        <div class="match-grid" id="todayMatches"></div>
+      </section>
+
+      <section class="section-pad" id="major">
+        <div class="section-heading split-heading">
+          <div>
+            <p class="eyebrow">Personal watchlist</p>
+            <h2>Teams You Want to Follow</h2>
+            <p>Select the teams you want to track. Each selected team shows its next available match dynamically.</p>
+          </div>
+          <div class="section-toolbar followed-toolbar" aria-label="Followed teams selector">
+            <div class="field-wrap select-wrap compact-select">
+              <label for="followedTeamPicker">Add Team</label>
+              <select id="followedTeamPicker"></select>
+            </div>
+            <button class="chip-button" id="clearFollowedBtn" type="button">Clear Followed</button>
+          </div>
+        </div>
+        <div class="selected-team-chips" id="followedTeamChips" aria-label="Selected followed teams"></div>
         <div class="team-watch-grid" id="majorTeams"></div>
       </section>
 
@@ -135,7 +126,23 @@
         <div class="scoreboard-list" id="liveScoreboard"></div>
       </section>
 
-      <span class="nav-anchor" id="results" aria-hidden="true"></span>
+      <section class="section-pad" id="results">
+        <div class="section-heading split-heading">
+          <div>
+            <p class="eyebrow">Finished matches</p>
+            <h2>Results</h2>
+            <p>Completed matches stay here with final score, extra-time or penalty details when available.</p>
+          </div>
+          <div class="section-toolbar result-filter-toolbar" aria-label="Results filters">
+            <div class="field-wrap select-wrap compact-select">
+              <label for="resultTeamFilter">Result Team</label>
+              <select id="resultTeamFilter"></select>
+            </div>
+          </div>
+        </div>
+        <div class="match-grid" id="resultsGrid"></div>
+      </section>
+
       <section class="section-pad" id="schedule">
         <div class="section-heading split-heading">
           <div>
@@ -159,7 +166,7 @@
               <option value="all">All matches</option>
               <option value="today">Today’s matches</option>
               <option value="favourite">Favourite team</option>
-              <option value="major">Major teams</option>
+              <option value="major">Followed teams</option>
               <option value="group">Group stage</option>
               <option value="knockout">Knockout</option>
             </select>
