@@ -5,12 +5,13 @@ This is a clean rebuild of the FIFA World Cup 2026 BST Match Tracker.
 What is included:
 
 - Football-themed responsive website
+- Batch 1 UI refinement: sticky navbar, top status bar, proper SVG icons, improved background, relocated controls, dropdown visual fixes
 - Bangladesh Standard Time display
 - Today’s matches
 - Global and per-match countdowns
-- Dynamic favourite team selector, default Brazil
+- Dynamic favourite team selector inside the Favourite Team section, default Brazil
 - Major teams quick-watch section
-- Full schedule with search and filters
+- Full schedule with search and filters inside the Schedule section toolbar
 - Group standings calculated from available results
 - Groups A–L with flags
 - Browser notification buttons for 20-minute reminders
@@ -49,7 +50,7 @@ After extracting, push with:
 
 ```powershell
 git add -A
-git commit -m "Clean rebuild with free World Cup API"
+git commit -m "Refine navbar status bar icons and controls"
 git push
 ```
 

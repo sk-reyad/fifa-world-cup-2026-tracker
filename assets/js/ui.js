@@ -11,6 +11,22 @@
       .replaceAll("'", '&#039;');
   }
 
+  const ICONS = {
+    bell: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9.8a6 6 0 0 0-12 0c0 7-2.5 7.2-2.5 7.2h17S18 16.8 18 9.8Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.6 20a2.6 2.6 0 0 0 4.8 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    bellOff: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M6.2 6.3A5.9 5.9 0 0 0 6 9.8c0 7-2.5 7.2-2.5 7.2h12.3M18 15.6c-.3-1.2-.5-3-.5-5.8a6 6 0 0 0-7.3-5.85M9.6 20a2.6 2.6 0 0 0 4.8 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    clock: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v6l4 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+    mapPin: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-5.1 7-11a7 7 0 1 0-14 0c0 5.9 7 11 7 11Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+    moon: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.3 8.3 0 0 1 8.8 3.5 8.8 8.8 0 1 0 20.5 15.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+    sun: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    menu: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+    close: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+  };
+
+  function icon(name) {
+    return ICONS[name] || '';
+  }
+
+
   const FLAG_CDN_BASE = 'https://flagcdn.com';
 
   function flagSource(flagCodeOrUrl) {
@@ -93,7 +109,7 @@
   function notifyButton(fixture) {
     if (!window.WC_NOTIFICATIONS) return '';
     const active = window.WC_NOTIFICATIONS.isEnabled(fixture.id);
-    return `<button class="chip-button notify-btn" data-notify-id="${escapeHTML(fixture.id)}" type="button">${active ? '🔔 Alert On' : '🔕 Notify 20 min before'}</button>`;
+    return `<button class="chip-button notify-btn" data-notify-id="${escapeHTML(fixture.id)}" type="button">${active ? `${icon('bell')} <span>Alert On</span>` : `${icon('bellOff')} <span>Notify 20 min before</span>`}</button>`;
   }
 
   function countdownContainer(fixture, className = 'mini-countdown') {
@@ -109,8 +125,8 @@
         ${title}
         ${metaRow(fixture, options.isFavourite, options.isMajor)}
         ${scoreLine(fixture)}
-        <p class="time-line">🕒 ${escapeHTML(formatDateTime(fixture))}</p>
-        <p class="venue-line">📍 ${escapeHTML(fixtureVenue(fixture))}</p>
+        <p class="time-line">${icon('clock')} <span>${escapeHTML(formatDateTime(fixture))}</span></p>
+        <p class="venue-line">${icon('mapPin')} <span>${escapeHTML(fixtureVenue(fixture))}</span></p>
         ${countdownContainer(fixture)}
         ${notifyButton(fixture)}
       </article>
@@ -129,8 +145,8 @@
       <div>
         ${metaRow(fixture, true, false)}
         ${scoreLine(fixture)}
-        <p class="time-line">🕒 ${escapeHTML(formatDateTime(fixture))}</p>
-        <p class="venue-line">📍 ${escapeHTML(fixtureVenue(fixture))}</p>
+        <p class="time-line">${icon('clock')} <span>${escapeHTML(formatDateTime(fixture))}</span></p>
+        <p class="venue-line">${icon('mapPin')} <span>${escapeHTML(fixtureVenue(fixture))}</span></p>
         ${countdownContainer(fixture, 'countdown-grid')}
         ${notifyButton(fixture)}
       </div>
@@ -143,8 +159,8 @@
         ${horizontalMatchTitle(fixture)}
         ${metaRow(fixture)}
         ${scoreLine(fixture)}
-        <p class="time-line">🕒 ${escapeHTML(formatDateTime(fixture))}</p>
-        <p class="venue-line">📍 ${escapeHTML(fixtureVenue(fixture))}</p>
+        <p class="time-line">${icon('clock')} <span>${escapeHTML(formatDateTime(fixture))}</span></p>
+        <p class="venue-line">${icon('mapPin')} <span>${escapeHTML(fixtureVenue(fixture))}</span></p>
         ${countdownContainer(fixture)}
       </article>
     `;
@@ -155,7 +171,7 @@
   }
 
   window.WC_UI = {
-    qs, qsa, escapeHTML, flagSource, flagImage, teamLabel, horizontalMatchTitle, verticalMatchTitle,
+    qs, qsa, escapeHTML, icon, flagSource, flagImage, teamLabel, horizontalMatchTitle, verticalMatchTitle,
     fixtureVenue, formatDateTime, statusLabel, scoreLine, metaRow,
     notifyButton, countdownContainer, matchCard, featureCard, timelineItem, empty,
   };

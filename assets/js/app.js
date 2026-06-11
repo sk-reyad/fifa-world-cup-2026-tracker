@@ -88,7 +88,7 @@
     if (!fixture) return;
     UI.qs('#nextMatchTitle').innerHTML = UI.horizontalMatchTitle(fixture).replace('match-title-horizontal', 'match-title-horizontal hero-match-title');
     UI.qs('#nextMatchMeta').textContent = `${UI.formatDateTime(fixture)} • ${fixture.stage}${fixture.group ? ` • Group ${fixture.group}` : ''}`;
-    UI.qs('#nextMatchVenue').textContent = `📍 ${UI.fixtureVenue(fixture)}`;
+    UI.qs('#nextMatchVenue').innerHTML = `${UI.icon('mapPin')} <span>${UI.escapeHTML(UI.fixtureVenue(fixture))}</span>`;
     COUNTDOWN.renderGrid(fixture.kickoff, UI.qs('#globalCountdown'));
   }
 
@@ -130,8 +130,8 @@
           ${UI.horizontalMatchTitle(fixture)}
           ${UI.metaRow(fixture, team === state.favouriteTeam, true)}
           ${UI.scoreLine(fixture)}
-          <p class="time-line">🕒 ${UI.escapeHTML(UI.formatDateTime(fixture))}</p>
-          <p class="venue-line">📍 ${UI.escapeHTML(UI.fixtureVenue(fixture))}</p>
+          <p class="time-line">${UI.icon('clock')} <span>${UI.escapeHTML(UI.formatDateTime(fixture))}</span></p>
+          <p class="venue-line">${UI.icon('mapPin')} <span>${UI.escapeHTML(UI.fixtureVenue(fixture))}</span></p>
           ${UI.countdownContainer(fixture)}
         </article>
       `;
@@ -153,7 +153,7 @@
         ${UI.horizontalMatchTitle(fixture)}
         ${UI.metaRow(fixture, hasTeam(fixture, state.favouriteTeam), hasMajorTeam(fixture))}
         ${UI.scoreLine(fixture) || '<p class="venue-line">Score will appear here when live API data is connected.</p>'}
-        <p class="time-line">🕒 ${UI.escapeHTML(UI.formatDateTime(fixture))}</p>
+        <p class="time-line">${UI.icon('clock')} <span>${UI.escapeHTML(UI.formatDateTime(fixture))}</span></p>
         ${UI.countdownContainer(fixture)}
       </article>
     `).join('');
@@ -271,7 +271,7 @@
           return;
         }
         const enabled = NOTIFY.toggle(notifyBtn.dataset.notifyId);
-        notifyBtn.textContent = enabled ? '🔔 Alert On' : '🔕 Notify 20 min before';
+        notifyBtn.innerHTML = enabled ? `${UI.icon('bell')} <span>Alert On</span>` : `${UI.icon('bellOff')} <span>Notify 20 min before</span>`;
         return;
       }
 
@@ -290,18 +290,37 @@
     const themeToggle = UI.qs('#themeToggle');
     const savedTheme = localStorage.getItem('wc2026-theme') || 'dark';
     document.documentElement.dataset.theme = savedTheme;
-    themeToggle.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+    themeToggle.innerHTML = savedTheme === 'dark' ? UI.icon('moon') : UI.icon('sun');
     themeToggle.addEventListener('click', () => {
       const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
       document.documentElement.dataset.theme = next;
       localStorage.setItem('wc2026-theme', next);
-      themeToggle.textContent = next === 'dark' ? '🌙' : '☀️';
+      themeToggle.innerHTML = next === 'dark' ? UI.icon('moon') : UI.icon('sun');
     });
 
     UI.qs('#navToggle').addEventListener('click', () => {
       const nav = UI.qs('#siteNav');
+      const toggle = UI.qs('#navToggle');
       const open = nav.classList.toggle('is-open');
-      UI.qs('#navToggle').setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.innerHTML = open ? UI.icon('close') : UI.icon('menu');
+    });
+
+    const updateStickyState = () => {
+      document.documentElement.classList.toggle('is-scrolled', window.scrollY > 24);
+    };
+    updateStickyState();
+    window.addEventListener('scroll', updateStickyState, { passive: true });
+
+
+    UI.qsa('#siteNav a').forEach((link) => {
+      link.addEventListener('click', () => {
+        const nav = UI.qs('#siteNav');
+        const toggle = UI.qs('#navToggle');
+        nav.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.innerHTML = UI.icon('menu');
+      });
     });
 
     UI.qs('#favouriteSelect').addEventListener('change', (event) => {
@@ -335,7 +354,7 @@
 
     UI.qs('#notifyEnableBtn').addEventListener('click', async () => {
       const status = await NOTIFY.requestPermission();
-      UI.qs('#notifyEnableBtn').textContent = status === 'granted' ? '🔔 Alerts Enabled' : status === 'unsupported' ? 'Notifications Unsupported' : '🔔 Permission Needed';
+      UI.qs('#notifyEnableBtn').innerHTML = status === 'granted' ? `${UI.icon('bell')} <span>Alerts Enabled</span>` : status === 'unsupported' ? '<span>Notifications Unsupported</span>' : `${UI.icon('bell')} <span>Permission Needed</span>`;
     });
 
     UI.qs('#refreshLiveBtn').addEventListener('click', () => fetchLiveData(true));
