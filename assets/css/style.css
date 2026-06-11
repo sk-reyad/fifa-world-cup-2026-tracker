@@ -1847,23 +1847,212 @@ html[data-theme="light"] .empty-chip-note {
   }
 }
 
-/* Patch: favourite timeline should fill the available row when it has only one or two cards */
-.timeline.timeline--count-1 {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.timeline.timeline--count-2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.timeline.timeline--count-3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+/* Mobile readability patch: hero scoreboard + favourite team cards */
+.team-name-text {
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
 }
 
 @media (max-width: 720px) {
-  .timeline.timeline--count-1,
-  .timeline.timeline--count-2,
-  .timeline.timeline--count-3 {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  .page-shell {
+    overflow-x: clip;
+  }
+
+  .hero-dashboard {
+    gap: 16px;
+  }
+
+  .hero-panel {
+    min-height: auto;
+    border-radius: 24px;
+  }
+
+  .hero-panel-inner {
+    padding: 18px;
+    gap: 18px;
+  }
+
+  .hero-panel-topline {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .panel-kicker,
+  .panel-stage {
+    min-height: 30px;
+    padding: 6px 9px;
+    font-size: 0.68rem;
+  }
+
+  .hero-panel .hero-match-title {
+    grid-template-columns: minmax(0, 1fr) minmax(54px, auto) minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    font-size: clamp(1rem, 4.9vw, 1.32rem);
+  }
+
+  .hero-panel .team-side--home,
+  .hero-panel .team-side--away {
+    justify-content: center;
+    min-width: 0;
+    text-align: center;
+  }
+
+  .hero-panel .team-label {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .hero-panel .team-name-text {
+    max-width: 9.5ch;
+    font-size: clamp(1.02rem, 5vw, 1.35rem);
+    line-height: 1.08;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+  }
+
+  .hero-panel .flag-icon {
+    width: 2.05em;
+    height: 1.34em;
+    flex: 0 0 auto;
+  }
+
+  .hero-panel .match-center {
+    min-width: 54px;
+  }
+
+  .hero-panel .vs-badge {
+    width: 48px;
+    height: 48px;
+    font-size: 0.9rem;
+  }
+
+  .hero-panel .score-stack {
+    min-width: 58px;
+    max-width: 68px;
+    padding: 7px 6px;
+    border-radius: 14px;
+  }
+
+  .hero-panel .score-stack strong {
+    font-size: clamp(0.9rem, 4.2vw, 1.08rem);
+  }
+
+  .hero-panel .score-stack small {
+    max-width: 56px;
+    margin-top: 4px;
+    font-size: 0.52rem;
+    line-height: 1.05;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  .hero-panel-meta {
+    display: grid;
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .hero-panel-meta span {
+    width: 100%;
+    justify-content: flex-start;
+    white-space: normal;
+    overflow-wrap: break-word;
+    font-size: 0.72rem;
+  }
+
+  .hero-countdown {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .hero-countdown span {
+    min-height: 72px;
+    padding: 10px 8px;
+  }
+
+  .hero-countdown strong {
+    font-size: 1.45rem;
+  }
+
+  .feature-match {
+    gap: 16px;
+    padding: 18px;
+  }
+
+  .feature-main-copy h3 {
+    font-size: clamp(1.35rem, 6vw, 1.75rem);
+  }
+
+  .feature-main-copy p:not(.eyebrow) {
+    font-size: 0.92rem;
+  }
+
+  .feature-match .match-title-feature {
+    gap: 10px;
+    font-size: clamp(1.08rem, 4.7vw, 1.32rem);
+  }
+
+  .feature-match .team-label {
+    font-size: 1.08rem;
+    font-weight: 1000;
+  }
+
+  .feature-match .team-name-text {
+    line-height: 1.14;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+  }
+
+  .feature-match .flag-icon {
+    width: 1.85em;
+    height: 1.2em;
+  }
+
+  .feature-match .vs-badge {
+    width: 46px;
+    height: 46px;
+    font-size: 0.92rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero-panel-inner {
+    padding: 16px;
+  }
+
+  .hero-panel .hero-match-title {
+    gap: 6px;
+  }
+
+  .hero-panel .team-name-text {
+    max-width: 8.5ch;
+    font-size: clamp(0.98rem, 5vw, 1.18rem);
+  }
+
+  .hero-panel .score-stack {
+    min-width: 54px;
+    max-width: 62px;
+    padding-inline: 5px;
+  }
+
+  .hero-panel .score-stack small {
+    font-size: 0.48rem;
+  }
+
+  .feature-match .team-label {
+    font-size: 1.02rem;
   }
 }
