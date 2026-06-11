@@ -2056,3 +2056,279 @@ html[data-theme="light"] .empty-chip-note {
     font-size: 1.02rem;
   }
 }
+
+/* Mobile-only hero scoreboard layout patch
+   Keeps desktop/tablet unchanged. Fixes stacked/misaligned flags and broken hero names. */
+@media (max-width: 720px) {
+  .hero-panel .hero-match-title {
+    grid-template-columns: minmax(94px, 1fr) minmax(54px, auto) minmax(106px, 1fr);
+    grid-template-areas: "home center away";
+    align-items: center;
+    column-gap: 8px;
+    width: 100%;
+  }
+
+  .hero-panel .team-side--home { grid-area: home; }
+  .hero-panel .match-center { grid-area: center; }
+  .hero-panel .team-side--away { grid-area: away; }
+
+  .hero-panel .team-side--home,
+  .hero-panel .team-side--away {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .hero-panel .team-side--home {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .hero-panel .team-side--away {
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  .hero-panel .team-label {
+    flex-direction: row !important;
+    align-items: center;
+    width: auto;
+    min-width: 0;
+    gap: 6px;
+    font-weight: 1000;
+  }
+
+  .hero-panel .team-label--left {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .hero-panel .team-label--right {
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  .hero-panel .team-name-text {
+    max-width: 10.2ch;
+    font-size: clamp(0.96rem, 4.35vw, 1.16rem);
+    line-height: 1.08;
+    overflow-wrap: normal;
+    word-break: keep-all;
+    text-wrap: balance;
+  }
+
+  .hero-panel .flag-icon {
+    width: 2em;
+    height: 1.34em;
+    flex: 0 0 auto;
+  }
+
+  .hero-panel .match-center {
+    min-width: 54px;
+    display: grid;
+    place-items: center;
+  }
+
+  .hero-panel .vs-badge {
+    width: 44px;
+    height: 44px;
+    font-size: 0.86rem;
+  }
+
+  .hero-panel .score-stack {
+    min-width: 60px;
+    max-width: 72px;
+    padding: 7px 6px;
+    border-radius: 14px;
+    text-align: center;
+  }
+
+  .hero-panel .score-stack strong {
+    font-size: clamp(0.86rem, 4vw, 1.05rem);
+    line-height: 0.96;
+  }
+
+  .hero-panel .score-stack small {
+    max-width: 60px;
+    margin-top: 4px;
+    font-size: 0.46rem;
+    line-height: 1.06;
+    text-align: center;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+}
+
+@media (max-width: 390px) {
+  .hero-panel .hero-match-title {
+    grid-template-columns: minmax(88px, 1fr) minmax(50px, auto) minmax(98px, 1fr);
+    column-gap: 6px;
+  }
+
+  .hero-panel .team-name-text {
+    max-width: 9.2ch;
+    font-size: clamp(0.9rem, 4.15vw, 1.08rem);
+  }
+
+  .hero-panel .flag-icon {
+    width: 1.82em;
+    height: 1.22em;
+  }
+
+  .hero-panel .score-stack {
+    min-width: 56px;
+    max-width: 66px;
+    padding: 6px 5px;
+  }
+
+  .hero-panel .score-stack small {
+    max-width: 54px;
+    font-size: 0.43rem;
+  }
+}
+
+/* Mobile-only hero reference scoreboard layout patch
+   API untouched. Desktop/tablet layout remains unchanged. */
+@media (max-width: 720px) {
+  .hero-panel .hero-match-title {
+    display: grid;
+    grid-template-columns: minmax(74px, 1fr) minmax(74px, auto) minmax(74px, 1fr);
+    grid-template-areas: "home center away";
+    align-items: center;
+    justify-items: center;
+    column-gap: 10px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .hero-panel .team-side--home,
+  .hero-panel .team-side--away {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .hero-panel .team-label,
+  .hero-panel .team-label--left,
+  .hero-panel .team-label--right {
+    width: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px;
+    text-align: center !important;
+  }
+
+  .hero-panel .team-label--right .flag-icon {
+    order: -1;
+  }
+
+  .hero-panel .team-label--right .team-name-text {
+    order: 1;
+  }
+
+  .hero-panel .flag-icon {
+    width: 2.28rem;
+    height: 1.52rem;
+    border-radius: 4px;
+    flex: 0 0 auto;
+  }
+
+  .hero-panel .team-name-text {
+    display: block;
+    max-width: 9.5ch;
+    font-size: clamp(0.78rem, 3.65vw, 1rem);
+    line-height: 1.08;
+    font-weight: 900;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: balance;
+  }
+
+  .hero-panel .match-center {
+    grid-area: center;
+    min-width: 68px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+  }
+
+  .hero-panel .score-stack {
+    min-width: 68px;
+    max-width: 86px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    text-align: center;
+  }
+
+  .hero-panel .score-stack strong {
+    display: block;
+    font-size: clamp(1.25rem, 8vw, 2rem);
+    line-height: 1;
+    color: var(--text);
+    letter-spacing: 0.02em;
+    text-shadow: none;
+    white-space: nowrap;
+  }
+
+  .hero-panel .score-stack small,
+  .hero-panel .score-stack .penalty-line {
+    display: block;
+    max-width: 86px;
+    margin-top: 5px;
+    font-size: clamp(0.48rem, 2.35vw, 0.62rem);
+    line-height: 1.05;
+    color: var(--muted);
+    font-weight: 900;
+    text-align: center;
+    text-transform: uppercase;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .hero-panel .vs-badge {
+    width: 48px;
+    height: 48px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .hero-panel .hero-match-title {
+    grid-template-columns: minmax(68px, 1fr) minmax(62px, auto) minmax(68px, 1fr);
+    column-gap: 8px;
+  }
+
+  .hero-panel .flag-icon {
+    width: 2.08rem;
+    height: 1.38rem;
+  }
+
+  .hero-panel .team-name-text {
+    max-width: 8.7ch;
+    font-size: clamp(0.72rem, 3.55vw, 0.92rem);
+  }
+
+  .hero-panel .score-stack {
+    min-width: 62px;
+    max-width: 76px;
+  }
+}
+
+/* UI-only patch: make favourite timeline cards fill the row when there are 1 or 2 matches */
+@media (min-width: 1121px) {
+  .timeline:has(> .timeline-item:only-child) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .timeline:has(> .timeline-item:nth-child(2):last-child) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
