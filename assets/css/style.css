@@ -2322,13 +2322,25 @@ html[data-theme="light"] .empty-chip-note {
   }
 }
 
-/* UI-only patch: make favourite timeline cards fill the row when there are 1 or 2 matches */
-@media (min-width: 1121px) {
-  .timeline:has(> .timeline-item:only-child) {
-    grid-template-columns: minmax(0, 1fr);
-  }
+/* UI-only actual fix: favourite timeline cards use the full row width.
+   1 card = full width, 2 cards = 50% + 50%, 3 cards = 3 columns.
+   This targets only the Favourite Team timeline and does not affect other grids. */
+#favouriteTimeline.timeline {
+  width: 100%;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)) !important;
+  align-items: stretch;
+}
 
-  .timeline:has(> .timeline-item:nth-child(2):last-child) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+#favouriteTimeline.timeline > .match-card,
+#favouriteTimeline.timeline > .timeline-item {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  #favouriteTimeline.timeline {
+    grid-template-columns: 1fr !important;
   }
 }
