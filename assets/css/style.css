@@ -2804,3 +2804,10 @@ html[data-theme="light"] .feature-match {
     width: 190px;
   }
 }
+
+/* Schedule collapse visibility fix
+   Keep this after the universal match-card grid rules because .match-card-grid uses display:grid !important. */
+.day-block.is-collapsed .day-content,
+.day-block.is-collapsed .day-content.match-card-grid {
+  display: none !important;
+}
