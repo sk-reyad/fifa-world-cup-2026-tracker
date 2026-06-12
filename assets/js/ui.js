@@ -102,19 +102,14 @@
   }
 
   function isTimeDerivedLive(fixture) {
-    const status = normalizedStatus(fixture);
-    if (FINISHED_STATUSES.includes(status) || LIVE_STATUSES.includes(status)) return false;
-    const elapsed = elapsedMinutesFromKickoff(fixture);
-    // Keep a scheduled match in live-state for a safe live window after kickoff.
-    // This fixes the UI contradiction where a card said Upcoming while countdown already said Started.
-    return elapsed !== null && elapsed >= 0 && elapsed <= 145;
+    // Do not guess live minutes from kickoff time. Added time/half-time delays vary by match,
+    // so clock-derived minutes can become misleading. Only the API-provided status/score
+    // should decide exact live timing.
+    return false;
   }
 
   function isTimeDerivedFinished(fixture) {
-    const status = normalizedStatus(fixture);
-    if (FINISHED_STATUSES.includes(status) || LIVE_STATUSES.includes(status)) return false;
-    const elapsed = elapsedMinutesFromKickoff(fixture);
-    return elapsed !== null && elapsed > 145;
+    return false;
   }
 
   function isLiveFixture(fixture) {
@@ -134,21 +129,13 @@
       if (!['notstarted', 'not_started', 'scheduled', 'upcoming', 'null', 'undefined'].includes(low)) {
         if (/^\d+$/.test(raw)) return `${raw}'`;
         if (/^\d+\+\d+$/.test(raw)) return `${raw}'`;
-        if (/^\d{1,3}:\d{2}$/.test(raw)) return raw;
         if (low.includes('half') || low === 'ht') return 'Half-Time';
         if (low.includes('full') || low === 'ft') return 'Full-time';
-        if (low.includes('extra')) return 'ET';
-        if (low.includes('pen')) return 'PENS';
-        if (!['live', 'inplay', 'in_play', 'in_progress', 'inprogress', 'started', 'running', 'playing'].includes(low)) return raw.toUpperCase();
+        if (low.includes('extra')) return 'Extra Time';
+        if (low.includes('pen')) return 'Penalties';
+        if (low.includes('live') || low.includes('progress') || low.includes('start')) return '';
+        return raw.toUpperCase();
       }
-    }
-
-    // Some providers return live score/status but keep time_elapsed as "notstarted".
-    // In that case, derive a safe minute from kickoff so the UI does not show only "LIVE".
-    const elapsed = elapsedMinutesFromKickoff(fixture);
-    if (elapsed !== null && elapsed >= 0 && elapsed <= 145) {
-      if (elapsed > 90) return `90+${elapsed - 90}'`;
-      return `${Math.max(1, elapsed)}'`;
     }
     return '';
   }
@@ -158,8 +145,8 @@
     const minute = compactMinute(fixture);
     if (isLiveFixture(fixture)) {
       if (['ht', 'halftime', 'half_time'].includes(status)) return { text: 'Half-Time', detail: 'Half-Time', className: 'status-live', kind: 'live' };
-      if (['et', 'extra_time'].includes(status)) return { text: minute || 'ET', detail: 'Extra time', className: 'status-live', kind: 'live' };
-      if (['penalties', 'penalty'].includes(status)) return { text: 'PENS', detail: 'Penalty shootout', className: 'status-live', kind: 'live' };
+      if (['et', 'extra_time', 'extra-time'].includes(status)) return { text: minute || 'Extra Time', detail: 'Extra Time', className: 'status-live', kind: 'live' };
+      if (['penalties', 'penalty', 'pens'].includes(status)) return { text: 'Penalties', detail: 'Penalty shootout', className: 'status-live', kind: 'live' };
       return { text: minute ? `${minute} LIVE` : 'LIVE', detail: 'Live now', className: 'status-live', kind: 'live' };
     }
     if (isFinishedFixture(fixture)) {

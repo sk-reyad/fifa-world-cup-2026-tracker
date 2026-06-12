@@ -247,6 +247,135 @@ function normalizeStandingGroups(groups, teamMaps) {
   }));
 }
 
+function canonicalTeamName(name) {
+  return String(name || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/the/g, '')
+    .replace(/bosnia herzegovina/g, 'bosnia and herzegovina')
+    .replace(/united states/g, 'usa')
+    .replace(/cote d ivoire/g, 'ivory coast')
+    .replace(/dr congo|congo dr|democratic republic of congo|democratic republic of the congo/g, 'dr congo')
+    .trim();
+}
+
+function statusFromApiFootball(status = {}) {
+  const short = String(status.short || '').trim().toUpperCase();
+  const long = String(status.long || '').trim().toLowerCase();
+  if (['NS', 'TBD'].includes(short) || long.includes('not started')) return 'scheduled';
+  if (['1H', '2H', 'ET', 'P', 'BT', 'LIVE'].includes(short) || long.includes('in play') || long.includes('extra time') || long.includes('penalty')) return 'live';
+  if (['HT'].includes(short) || long.includes('halftime') || long.includes('half-time')) return 'half_time';
+  if (['FT', 'AET', 'PEN'].includes(short) || long.includes('match finished')) return short === 'AET' ? 'aet' : short === 'PEN' ? 'pen_finished' : 'finished';
+  if (['SUSP', 'INT'].includes(short)) return 'live';
+  return short || long || 'scheduled';
+}
+
+function timeFromApiFootball(status = {}) {
+  const short = String(status.short || '').trim().toUpperCase();
+  const elapsed = asNumber(status.elapsed);
+  const extra = asNumber(status.extra);
+  if (short === 'HT') return 'Half-Time';
+  if (short === 'FT') return 'Full-time';
+  if (short === 'AET') return 'Full-time';
+  if (short === 'PEN') return 'Penalties';
+  if (Number.isFinite(elapsed)) return extra ? `${elapsed}+${extra}` : String(elapsed);
+  return clean(status.long || status.short);
+}
+
+function normalizeApiFootballFixture(item) {
+  const fixture = item.fixture || {};
+  const teams = item.teams || {};
+  const goals = item.goals || {};
+  const score = item.score || {};
+  const venue = fixture.venue || {};
+  const status = fixture.status || {};
+  return {
+    apiFixtureId: clean(fixture.id),
+    matchNumber: asNumber(item.matchNumber || fixture.matchNumber || fixture.roundNumber),
+    homeTeam: normalizeName(teams.home?.name),
+    awayTeam: normalizeName(teams.away?.name),
+    homeTeamConfirmed: true,
+    awayTeamConfirmed: true,
+    homeScore: asNumber(goals.home ?? score.fulltime?.home ?? score.halftime?.home),
+    awayScore: asNumber(goals.away ?? score.fulltime?.away ?? score.halftime?.away),
+    homePenalty: asNumber(score.penalty?.home),
+    awayPenalty: asNumber(score.penalty?.away),
+    status: statusFromApiFootball(status),
+    kickoff: clean(fixture.date),
+    stadium: clean(venue.name),
+    city: clean(venue.city),
+    country: null,
+    stage: clean(item.league?.round) || null,
+    group: null,
+    type: null,
+    timeElapsed: timeFromApiFootball(status),
+    homeScorers: null,
+    awayScorers: null,
+    raw: {
+      source: 'api-football',
+      fixtureId: fixture.id,
+      status: status.short || status.long,
+      elapsed: status.elapsed,
+      extra: status.extra,
+    },
+  };
+}
+
+async function fetchApiFootballLiveFixtures() {
+  const key = process.env.APISPORTS_KEY || process.env.API_FOOTBALL_KEY || '';
+  if (!key) return [];
+  const base = process.env.APISPORTS_BASE || 'https://v3.football.api-sports.io';
+  const league = process.env.APISPORTS_WC_LEAGUE || '1';
+  const season = process.env.APISPORTS_WC_SEASON || '2026';
+  const endpoint = `/fixtures?league=${encodeURIComponent(league)}&season=${encodeURIComponent(season)}&live=all`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+  try {
+    const response = await fetch(`${base}${endpoint}`, {
+      headers: { Accept: 'application/json', 'x-apisports-key': key },
+      signal: controller.signal,
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload?.message || payload?.errors?.requests || `API-Football returned ${response.status}`);
+    return asArray(payload, ['response']).map(normalizeApiFootballFixture).filter((fixture) => fixture.homeTeam && fixture.awayTeam);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function mergeLiveOverlay(fixtures, overlayFixtures = []) {
+  let merged = 0;
+  overlayFixtures.forEach((live) => {
+    const liveHome = canonicalTeamName(live.homeTeam);
+    const liveAway = canonicalTeamName(live.awayTeam);
+    const target = fixtures.find((fixture) => live.matchNumber && Number(fixture.matchNumber) === Number(live.matchNumber))
+      || fixtures.find((fixture) => canonicalTeamName(fixture.homeTeam) === liveHome && canonicalTeamName(fixture.awayTeam) === liveAway)
+      || fixtures.find((fixture) => canonicalTeamName(fixture.homeTeam) === liveAway && canonicalTeamName(fixture.awayTeam) === liveHome);
+    if (!target) return;
+    const sameDirection = canonicalTeamName(target.homeTeam) === liveHome;
+    target.status = live.status || target.status;
+    target.timeElapsed = live.timeElapsed || target.timeElapsed;
+    target.apiFixtureId = live.apiFixtureId || target.apiFixtureId;
+    if (Number.isFinite(live.homeScore) && Number.isFinite(live.awayScore)) {
+      target.homeScore = sameDirection ? live.homeScore : live.awayScore;
+      target.awayScore = sameDirection ? live.awayScore : live.homeScore;
+    }
+    if (Number.isFinite(live.homePenalty) && Number.isFinite(live.awayPenalty)) {
+      target.homePenalty = sameDirection ? live.homePenalty : live.awayPenalty;
+      target.awayPenalty = sameDirection ? live.awayPenalty : live.homePenalty;
+    }
+    if (live.kickoff) target.kickoff = live.kickoff;
+    if (live.stadium) target.stadium = live.stadium;
+    if (live.city) target.city = live.city;
+    target.liveOverlaySource = 'api-football';
+    merged += 1;
+  });
+  return merged;
+}
+
 async function fetchJSON(endpoint, base, token) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
@@ -277,12 +406,13 @@ module.exports = async function handler(req, res) {
   const token = process.env.WORLDCUP26_API_TOKEN || '';
   const errors = [];
 
-  const [gamesResult, teamsResult, stadiumsResult, groupsResult, healthResult] = await Promise.allSettled([
+  const [gamesResult, teamsResult, stadiumsResult, groupsResult, healthResult, apiFootballResult] = await Promise.allSettled([
     fetchJSON('/get/games', base, token),
     fetchJSON('/get/teams', base, token),
     fetchJSON('/get/stadiums', base, token),
     fetchJSON('/get/groups', base, token),
     fetchJSON('/health', base, token),
+    fetchApiFootballLiveFixtures(),
   ]);
 
   if (gamesResult.status === 'rejected') errors.push(`games: ${gamesResult.reason.message}`);
@@ -290,6 +420,7 @@ module.exports = async function handler(req, res) {
   if (stadiumsResult.status === 'rejected') errors.push(`stadiums: ${stadiumsResult.reason.message}`);
   if (groupsResult.status === 'rejected') errors.push(`groups: ${groupsResult.reason.message}`);
   if (healthResult.status === 'rejected') errors.push(`health: ${healthResult.reason.message}`);
+  if (apiFootballResult.status === 'rejected') errors.push(`api-football live overlay: ${apiFootballResult.reason.message}`);
 
   const games = gamesResult.status === 'fulfilled' ? asArray(gamesResult.value, ['games', 'matches', 'fixtures']) : [];
   const teams = teamsResult.status === 'fulfilled' ? asArray(teamsResult.value, ['teams']) : [];
@@ -303,10 +434,14 @@ module.exports = async function handler(req, res) {
     .filter((fixture) => fixture.matchNumber && fixture.homeTeam && fixture.awayTeam)
     .sort((a, b) => a.matchNumber - b.matchNumber);
 
+  const apiFootballFixtures = apiFootballResult.status === 'fulfilled' ? apiFootballResult.value : [];
+  const liveOverlayMerged = mergeLiveOverlay(fixtures, apiFootballFixtures);
+  const liveOverlayEnabled = Boolean(process.env.APISPORTS_KEY || process.env.API_FOOTBALL_KEY);
+
   return res.status(200).json({
     ok: fixtures.length > 0,
     mode: 'worldcup26',
-    provider: 'worldcup26.ir free API',
+    provider: liveOverlayEnabled ? `worldcup26.ir free API + API-Football live overlay${liveOverlayMerged ? ` (${liveOverlayMerged} live matches)` : ''}` : 'worldcup26.ir free API',
     requiresApiKey: false,
     base,
     fixtures,
@@ -326,6 +461,8 @@ module.exports = async function handler(req, res) {
       stadiums: stadiums.length,
       groups: groups.length,
       fixtures: fixtures.length,
+      apiFootballLive: apiFootballFixtures.length,
+      liveOverlayMerged,
     },
     health: healthResult.status === 'fulfilled' ? healthResult.value : null,
     fetchedAt: new Date().toISOString(),

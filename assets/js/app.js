@@ -7,6 +7,7 @@
   const NOTIFY = window.WC_NOTIFICATIONS;
 
   const FOLLOWED_KEY = 'wc2026-followed-teams';
+  const LIVE_CACHE_KEY = 'wc2026-live-api-cache';
 
   function allTeams() {
     return FAV.teamsFromGroups(data.groups);
@@ -26,6 +27,32 @@
 
   function saveFollowedTeams() {
     localStorage.setItem(FOLLOWED_KEY, JSON.stringify(state.followedTeams));
+  }
+
+  function saveLiveCache(payload) {
+    try {
+      localStorage.setItem(LIVE_CACHE_KEY, JSON.stringify({ savedAt: new Date().toISOString(), payload }));
+    } catch {}
+  }
+
+  function loadLiveCache() {
+    try {
+      const cached = JSON.parse(localStorage.getItem(LIVE_CACHE_KEY) || 'null');
+      if (cached && cached.payload && Array.isArray(cached.payload.fixtures)) return cached;
+    } catch {}
+    return null;
+  }
+
+  function liveSyncLabel(date) {
+    if (!date) return '';
+    return new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Dhaka', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(date);
+  }
+
+  function mergeLivePayload(payload) {
+    if (!payload || !Array.isArray(payload.fixtures)) return 0;
+    let merged = 0;
+    payload.fixtures.forEach((fixture) => { if (mergeLiveFixture(fixture)) merged += 1; });
+    return merged;
   }
 
   const state = {
@@ -874,15 +901,25 @@
       if (!response.ok) throw new Error(`API proxy returned ${response.status}`);
       const payload = await response.json();
       if (!payload.ok || !Array.isArray(payload.fixtures) || payload.fixtures.length === 0) throw new Error(payload.message || 'No live fixtures returned');
-      let merged = 0;
-      payload.fixtures.forEach((fixture) => { if (mergeLiveFixture(fixture)) merged += 1; });
+      const merged = mergeLivePayload(payload);
       state.apiMode = `${payload.provider || 'Live API'} connected (${merged} matches synced)`;
       state.lastLiveSync = new Date();
+      saveLiveCache(payload);
       if (statusEl) statusEl.textContent = `Data mode: ${state.apiMode}`;
       renderAll();
     } catch (error) {
-      state.apiMode = 'fallback schedule';
-      if (statusEl) statusEl.textContent = `Data mode: fallback schedule${manual ? ' — API not connected yet' : ''}`;
+      const cached = loadLiveCache();
+      if (cached) {
+        const merged = mergeLivePayload(cached.payload);
+        const syncDate = cached.savedAt ? new Date(cached.savedAt) : state.lastLiveSync;
+        state.lastLiveSync = syncDate && !Number.isNaN(syncDate.getTime()) ? syncDate : state.lastLiveSync;
+        state.apiMode = `API reconnecting • cached live data kept (${merged} matches)`;
+        if (statusEl) statusEl.textContent = `Data mode: ${state.apiMode}${state.lastLiveSync ? ` • last sync ${liveSyncLabel(state.lastLiveSync)}` : ''}`;
+        renderAll();
+      } else {
+        state.apiMode = 'fallback schedule';
+        if (statusEl) statusEl.textContent = `Data mode: fallback schedule${manual ? ' — API not connected yet' : ''}`;
+      }
       if (manual) console.warn('Live API refresh failed:', error);
     }
   }
@@ -909,6 +946,13 @@
   function init() {
     setupStaticEvents();
     bindDynamicClicks();
+    const cached = loadLiveCache();
+    if (cached) {
+      const merged = mergeLivePayload(cached.payload);
+      const syncDate = cached.savedAt ? new Date(cached.savedAt) : null;
+      state.lastLiveSync = syncDate && !Number.isNaN(syncDate.getTime()) ? syncDate : null;
+      state.apiMode = `cached live data loaded (${merged} matches)`;
+    }
     renderAll();
     fetchLiveData(false);
 
@@ -930,7 +974,7 @@
       renderCountdowns();
     }, 30000);
 
-    setInterval(() => fetchLiveData(false), 120000);
+    setInterval(() => fetchLiveData(false), 45000);
   }
 
   document.addEventListener('DOMContentLoaded', init);
