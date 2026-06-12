@@ -2893,3 +2893,83 @@ html[data-theme="light"] .feature-match {
     padding-inline: 6px;
   }
 }
+
+/* Targeted final fix: Bosnia and Herzegovina readability in hero + standings.
+   API/JS untouched. Keeps the name as two clean lines and prevents Q Zone from wrapping below. */
+.hero-panel .team-name-text--bosnia {
+  max-width: 10.4ch !important;
+  font-size: clamp(1rem, 1.65vw, 1.58rem) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.035em;
+}
+
+.hero-panel-primary .team-name-text--bosnia {
+  font-size: clamp(1.05rem, 1.7vw, 1.65rem) !important;
+}
+
+.hero-panel-secondary .team-name-text--bosnia {
+  font-size: clamp(0.9rem, 1.35vw, 1.2rem) !important;
+}
+
+.hero-panel .team-label:has(.team-name-text--bosnia) {
+  gap: 7px;
+}
+
+.hero-panel .team-label--right .team-name-text--bosnia {
+  align-items: flex-end !important;
+  text-align: right !important;
+}
+
+.hero-panel .team-label--left .team-name-text--bosnia {
+  align-items: flex-start !important;
+  text-align: left !important;
+}
+
+.standings-team-wrap {
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  column-gap: 8px !important;
+}
+
+.standings-team-wrap .team-label {
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  width: auto !important;
+}
+
+.standings-card .team-name-text--bosnia {
+  max-width: 10.5ch !important;
+  font-size: 0.84em !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.02em;
+}
+
+.standings-card .qualification-badge {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+  min-width: max-content !important;
+  margin-left: 0 !important;
+  font-size: 0.58rem !important;
+  padding: 3px 7px !important;
+}
+
+@media (max-width: 720px) {
+  .hero-panel .team-name-text--bosnia,
+  .hero-panel-primary .team-name-text--bosnia,
+  .hero-panel-secondary .team-name-text--bosnia {
+    max-width: 10ch !important;
+    font-size: clamp(0.66rem, 2.9vw, 0.82rem) !important;
+    line-height: 1.02 !important;
+    letter-spacing: -0.025em;
+  }
+
+  .standings-card .team-name-text--bosnia {
+    max-width: 10.5ch !important;
+    font-size: 0.78em !important;
+  }
+
+  .standings-card .qualification-badge {
+    font-size: 0.54rem !important;
+    padding: 2px 6px !important;
+  }
+}
