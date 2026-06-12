@@ -130,13 +130,17 @@
   function compactMinute(fixture) {
     const raw = String(fixture?.timeElapsed || fixture?.minute || fixture?.elapsed || '').trim();
     if (raw) {
-      if (/^\d+$/.test(raw)) return `${raw}'`;
-      const low = raw.toLowerCase();
-      if (low.includes('half') || low === 'ht') return 'Half-Time';
-      if (low.includes('full') || low === 'ft') return 'Full-time';
-      if (low.includes('extra')) return 'ET';
-      if (low.includes('pen')) return 'PENS';
-      return raw.toUpperCase();
+      const low = raw.toLowerCase().replace(/[\s-]+/g, '_');
+      if (!['notstarted', 'not_started', 'scheduled', 'upcoming', 'null', 'undefined'].includes(low)) {
+        if (/^\d+$/.test(raw)) return `${raw}'`;
+        if (/^\d+\+\d+$/.test(raw)) return `${raw}'`;
+        if (low.includes('half') || low === 'ht') return 'Half-Time';
+        if (low.includes('full') || low === 'ft') return 'Full-time';
+        if (low.includes('extra')) return 'ET';
+        if (low.includes('pen')) return 'PENS';
+        if (low.includes('live') || low.includes('progress') || low.includes('start')) return '';
+        return raw.toUpperCase();
+      }
     }
     if (isTimeDerivedLive(fixture)) {
       const elapsed = elapsedMinutesFromKickoff(fixture);
@@ -179,7 +183,7 @@
     if (status.kind === 'live' || status.kind === 'finished') {
       return `
         <span class="score-stack ${status.kind === 'live' ? 'score-stack--live' : 'score-stack--final'}">
-          <strong>${score || (status.kind === 'live' ? 'LIVE' : 'Full-time')}</strong>
+          <strong>${score || (status.kind === 'live' ? escapeHTML(status.text.replace(/\s*LIVE$/i, '') || 'LIVE') : 'Full-time')}</strong>
           <small>${score ? escapeHTML(status.text) : 'Score pending'}</small>
           ${penaltyLine(fixture)}
         </span>
@@ -230,7 +234,8 @@
     const status = statusLabel(fixture);
     const venue = fixtureVenue(fixture);
     if (status.kind === 'live' && !scoreAvailable(fixture)) {
-      return `<p class="state-line state-line--live">${icon('live')} <span>Live data connected. Score will appear as soon as the API returns it.</span></p>`;
+      const minute = compactMinute(fixture);
+      return `<p class="state-line state-line--live">${icon('live')} <span>${minute ? `Live window: ${escapeHTML(minute)}. ` : ''}Waiting for official score data from the API.</span></p>`;
     }
     if (status.kind === 'finished' && !scoreAvailable(fixture)) {
       return '<p class="state-line">Final result will appear when score data is available.</p>';
