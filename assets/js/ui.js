@@ -46,8 +46,16 @@
     return `<img class="${className}" src="${flagSource(flagCodeOrUrl)}" alt="${escapeHTML(team)} flag" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
   }
 
+  function teamNameMarkup(team) {
+    const value = String(team || '').trim();
+    if (value.toLowerCase() === 'bosnia and herzegovina') {
+      return '<span class="team-name-text team-name-text--bosnia"><span>Bosnia and </span><span>Herzegovina</span></span>';
+    }
+    return `<span class="team-name-text">${escapeHTML(team)}</span>`;
+  }
+
   function teamLabel(team, flag, mode = 'horizontal-left') {
-    const safeTeam = `<span class="team-name-text">${escapeHTML(team)}</span>`;
+    const safeTeam = teamNameMarkup(team);
     const flagEl = flagImage(flag, team);
     if (mode === 'horizontal-right') return `<span class="team-label team-label--right">${safeTeam} ${flagEl}</span>`;
     return `<span class="team-label team-label--left">${flagEl} ${safeTeam}</span>`;
