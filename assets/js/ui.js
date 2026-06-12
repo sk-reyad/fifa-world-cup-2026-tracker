@@ -134,17 +134,19 @@
       if (!['notstarted', 'not_started', 'scheduled', 'upcoming', 'null', 'undefined'].includes(low)) {
         if (/^\d+$/.test(raw)) return `${raw}'`;
         if (/^\d+\+\d+$/.test(raw)) return `${raw}'`;
+        if (/^\d{1,3}:\d{2}$/.test(raw)) return raw;
         if (low.includes('half') || low === 'ht') return 'Half-Time';
         if (low.includes('full') || low === 'ft') return 'Full-time';
         if (low.includes('extra')) return 'ET';
         if (low.includes('pen')) return 'PENS';
-        if (low.includes('live') || low.includes('progress') || low.includes('start')) return '';
-        return raw.toUpperCase();
+        if (!['live', 'inplay', 'in_play', 'in_progress', 'inprogress', 'started', 'running', 'playing'].includes(low)) return raw.toUpperCase();
       }
     }
-    if (isTimeDerivedLive(fixture)) {
-      const elapsed = elapsedMinutesFromKickoff(fixture);
-      if (elapsed === null) return '';
+
+    // Some providers return live score/status but keep time_elapsed as "notstarted".
+    // In that case, derive a safe minute from kickoff so the UI does not show only "LIVE".
+    const elapsed = elapsedMinutesFromKickoff(fixture);
+    if (elapsed !== null && elapsed >= 0 && elapsed <= 145) {
       if (elapsed > 90) return `90+${elapsed - 90}'`;
       return `${Math.max(1, elapsed)}'`;
     }
