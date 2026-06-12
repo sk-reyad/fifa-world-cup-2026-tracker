@@ -68,9 +68,9 @@
       <section class="section-pad" id="favourite">
         <div class="section-heading split-heading">
           <div>
-            <p class="eyebrow">Your priority team</p>
+            <p class="eyebrow">Your Favourite team</p>
             <h2 id="favouriteHeading">Favourite Team Focus</h2>
-            <p>The selected team’s next match is highlighted first, with all upcoming team matches underneath.</p>
+            <p>Keep an eye on your favourite team’s next match and everything coming up after it.</p>
           </div>
           <div class="section-toolbar favourite-toolbar" aria-label="Favourite team selector">
             <span class="badge" id="favouriteBadge">Brazil</span>
@@ -88,9 +88,9 @@
 
       <section class="section-pad" id="today">
         <div class="section-heading">
-          <p class="eyebrow">Today in BST</p>
+          <p class="eyebrow">DAILY TRACK</p>
           <h2>Today’s Matches</h2>
-          <p>Auto-detected by Bangladesh date. Cards switch between countdown, live score, and final result automatically.</p>
+          <p>Stay updated with countdowns before kickoff and see the scores once the game begins.</p>
         </div>
         <div class="match-grid" id="todayMatches"></div>
       </section>
@@ -100,7 +100,7 @@
           <div>
             <p class="eyebrow">Personal watchlist</p>
             <h2>Teams You Want to Follow</h2>
-            <p>Select the teams you want to track. Each selected team shows its next available match dynamically.</p>
+            <p>Build your own watchlist and follow the next fixture for every selected team.</p>
           </div>
           <div class="section-toolbar followed-toolbar" aria-label="Followed teams selector">
             <div class="field-wrap select-wrap compact-select">
@@ -117,9 +117,9 @@
       <section class="section-pad" id="scoreboard">
         <div class="section-heading split-heading">
           <div>
-            <p class="eyebrow">Live-ready</p>
+            <p class="eyebrow">Match Centre</p>
             <h2>Live Scoreboard</h2>
-            <p>Shows live or finished scores when the free API returns match data; otherwise it safely shows scheduled matches from fallback data.</p>
+            <p>Track ongoing games, final scores, and upcoming kickoffs from one scoreboard.</p>
           </div>
           <button class="chip-button" id="refreshLiveBtn" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v6h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Refresh Data</span></button>
         </div>
@@ -129,14 +129,20 @@
       <section class="section-pad" id="results">
         <div class="section-heading split-heading">
           <div>
-            <p class="eyebrow">Finished matches</p>
+            <p class="eyebrow">Finished Matches</p>
             <h2>Results</h2>
-            <p>Completed matches stay here with final score, extra-time or penalty details when available.</p>
+            <p>Track all completed matches scores here.</p>
           </div>
           <div class="section-toolbar result-filter-toolbar" aria-label="Results filters">
             <div class="field-wrap select-wrap compact-select">
               <label for="resultTeamFilter">Result Team</label>
               <select id="resultTeamFilter"></select>
+            </div>
+            <div class="field-wrap select-wrap compact-select">
+              <label for="resultDateFilter">Result Date</label>
+              <select id="resultDateFilter">
+                <option value="all">All dates</option>
+              </select>
             </div>
           </div>
         </div>
@@ -146,13 +152,12 @@
       <section class="section-pad" id="schedule">
         <div class="section-heading split-heading">
           <div>
-            <p class="eyebrow">Complete fixture list</p>
+            <p class="eyebrow">All Matches</p>
             <h2>Full Schedule</h2>
-            <p>Grouped by date and stage, sequentially ordered in Bangladesh Standard Time.</p>
+            <p>Explore the full tournament schedule with search & filters for date, team, and stage.</p>
           </div>
           <div class="result-tools">
-            <button class="chip-button" id="expandAllBtn" type="button">Expand all days</button>
-            <button class="chip-button" id="collapseAllBtn" type="button">Collapse days</button>
+            <button class="chip-button" id="scheduleToggleBtn" type="button" aria-pressed="false">Expand all days</button>
           </div>
         </div>
         <div class="schedule-toolbar" aria-label="Full schedule search and filters">
@@ -161,7 +166,19 @@
             <input id="scheduleSearch" type="search" placeholder="Search team, group, venue, date…" />
           </div>
           <div class="field-wrap select-wrap">
-            <label for="stageFilter">Filter</label>
+            <label for="scheduleDateFilter">Date</label>
+            <select id="scheduleDateFilter">
+              <option value="all">All dates</option>
+            </select>
+          </div>
+          <div class="field-wrap select-wrap">
+            <label for="scheduleTeamFilter">Team</label>
+            <select id="scheduleTeamFilter">
+              <option value="all">All teams</option>
+            </select>
+          </div>
+          <div class="field-wrap select-wrap">
+            <label for="stageFilter">Stage</label>
             <select id="stageFilter">
               <option value="all">All matches</option>
               <option value="today">Today’s matches</option>
@@ -171,56 +188,45 @@
               <option value="knockout">Knockout</option>
             </select>
           </div>
+          <button class="chip-button" id="clearScheduleFiltersBtn" type="button">Clear filters</button>
         </div>
         <div class="schedule-list" id="scheduleList"></div>
       </section>
 
-      <span class="nav-anchor" id="bracket" aria-hidden="true"></span>
+      <section class="section-pad" id="bracket">
+        <div class="section-heading">
+          <p class="eyebrow">Knockout Path</p>
+          <h2>World Cup Bracket</h2>
+          <p>Follow the knockout path from the Round of 32 to the final.</p>
+        </div>
+        <div class="bracket-scroll" aria-label="World Cup knockout bracket">
+          <div class="bracket-board" id="bracketBoard"></div>
+        </div>
+      </section>
+
       <section class="section-pad" id="standings">
         <div class="section-heading">
-          <p class="eyebrow">Auto calculated</p>
+          <p class="eyebrow">Current Points Table</p>
           <h2>Group Standings</h2>
-          <p>Standings are calculated from available match results. Before scores are connected, every team starts at zero.</p>
+          <p>Track group positions, points, goal difference, and qualification spots in one place.</p>
         </div>
         <div class="standings-grid" id="standingsGrid"></div>
-      </section>
-
-      <section class="section-pad" id="groups">
-        <div class="section-heading">
-          <p class="eyebrow">Group directory</p>
-          <h2>Groups A–L</h2>
-          <p>Every team is shown with its flag for fast browsing.</p>
-        </div>
-        <div class="groups-grid" id="groupsGrid"></div>
-      </section>
-
-      <section class="section-pad guide-section" id="guide">
-        <div class="section-heading">
-          <p class="eyebrow">Free API + fallback</p>
-          <h2>Data Source</h2>
-          <p>This version uses a free World Cup 2026 API proxy and local fallback schedule data, so the dashboard does not break if the API is unavailable.</p>
-        </div>
-        <div class="guide-grid">
-          <article>
-            <h3>1. Free API mode</h3>
-            <p>The website calls <code>/api/worldcup</code>, and that serverless route fetches data from the free World Cup 2026 API source.</p>
-          </article>
-          <article>
-            <h3>2. No secret token needed</h3>
-            <p>This build does not require paid API keys or environment variables.</p>
-          </article>
-          <article>
-            <h3>3. Safe fallback</h3>
-            <p>If the free API is down or returns incomplete data, the dashboard keeps running with the local fallback schedule.</p>
-          </article>
-        </div>
       </section>
     </main>
 
     <footer class="site-footer">
-      <p>Built for FIFA World Cup 2026 tracking in Bangladesh Standard Time.</p>
-      <a href="#top" class="footer-top-link"><span>Back to top</span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6-6 6 6M12 4v16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <div>
+        <strong>FIFA World Cup 2026 Tracker</strong>
+        <p>© 2026 SK REYAD ALI. All rights reserved.</p>
+      </div>
+      <div class="footer-links">
+        <span>Developed by SK REYAD ALI</span>
+        <a href="https://github.com/sk-reyad" target="_blank" rel="noopener">GitHub: sk-reyad</a>
+      </div>
     </footer>
+    <a href="#top" class="back-to-top" aria-label="Back to top">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6-6 6 6M12 4v16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
   </div>
 
   <script src="assets/js/data-fallback.js"></script>

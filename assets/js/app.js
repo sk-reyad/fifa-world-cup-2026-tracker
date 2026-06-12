@@ -36,8 +36,12 @@
     followedTeams: loadFollowedTeams(),
     search: '',
     filter: 'all',
+    scheduleTeam: 'all',
+    scheduleDate: 'all',
     resultTeam: 'all',
+    resultDate: 'all',
     collapsedDays: new Set(),
+    scheduleViewMode: 'default',
     apiMode: 'fallback',
     lastLiveSync: null,
   };
@@ -109,6 +113,96 @@
     }).format(now());
   }
 
+  function uniqueSortedDates(fixtures = state.fixtures) {
+    return [...new Set(fixtures.map((fixture) => fixture.dateLabel).filter(Boolean))]
+      .sort((a, b) => new Date(fixtures.find((fixture) => fixture.dateLabel === a)?.kickoff || 0) - new Date(fixtures.find((fixture) => fixture.dateLabel === b)?.kickoff || 0));
+  }
+
+
+  function bstDateStamp(date) {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Dhaka', year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(date);
+  }
+
+  function groupedScheduleDates(fixtures) {
+    const map = new Map();
+    fixtures.forEach((fixture) => {
+      const key = dateGroupKey(fixture);
+      if (!key || map.has(key)) return;
+      map.set(key, fixture);
+    });
+    return [...map.entries()].sort((a, b) => fixtureDate(a[1]) - fixtureDate(b[1]));
+  }
+
+  function defaultExpandedScheduleDates(fixtures) {
+    const grouped = groupedScheduleDates(fixtures);
+    if (!grouped.length) return new Set();
+
+    const todayStamp = bstDateStamp(now());
+    const tomorrowStamp = bstDateStamp(new Date(Date.now() + 24 * 60 * 60 * 1000));
+    const exactDates = new Set([todayStamp, tomorrowStamp]);
+    const exactMatches = grouped
+      .filter(([, fixture]) => exactDates.has(bstDateStamp(fixtureDate(fixture))))
+      .map(([key]) => key);
+
+    if (exactMatches.length) return new Set(exactMatches);
+
+    const upcomingMatches = grouped
+      .filter(([, fixture]) => fixtureDate(fixture).getTime() >= Date.now())
+      .slice(0, 2)
+      .map(([key]) => key);
+
+    return new Set(upcomingMatches.length ? upcomingMatches : grouped.slice(0, 2).map(([key]) => key));
+  }
+
+  function applyDefaultScheduleCollapse(fixtures) {
+    const keys = groupedScheduleDates(fixtures).map(([key]) => key);
+    const defaultExpanded = defaultExpandedScheduleDates(fixtures);
+    state.collapsedDays = new Set(keys.filter((key) => !defaultExpanded.has(key)));
+  }
+
+  function applyScheduleExpansionMode(fixtures) {
+    const keys = groupedScheduleDates(fixtures).map(([key]) => key);
+    if (state.scheduleViewMode === 'expanded') {
+      state.collapsedDays.clear();
+      return;
+    }
+    if (state.scheduleViewMode === 'default') {
+      applyDefaultScheduleCollapse(fixtures);
+      return;
+    }
+    state.collapsedDays = new Set([...state.collapsedDays].filter((key) => keys.includes(key)));
+  }
+
+  function updateScheduleToggleButton(fixtures) {
+    const btn = UI.qs('#scheduleToggleBtn') || UI.qs('#expandAllBtn');
+    if (!btn) return;
+    const keys = groupedScheduleDates(fixtures).map(([key]) => key);
+    const allExpanded = keys.length > 0 && keys.every((key) => !state.collapsedDays.has(key));
+    btn.textContent = allExpanded ? 'Collapse days' : 'Expand all days';
+    btn.setAttribute('aria-pressed', String(allExpanded));
+    btn.setAttribute('aria-label', allExpanded ? 'Collapse schedule days to today and next day' : 'Expand all schedule days');
+  }
+
+  function applyMatchGridMeta(root = document) {
+    UI.qsa('#todayMatches, #liveScoreboard, #majorTeams, #resultsGrid, #favouriteTimeline, .day-content', root).forEach((grid) => {
+      const count = UI.qsa(':scope > .match-card', grid).length;
+      grid.classList.toggle('match-card-grid', count > 0);
+      if (count > 0) {
+        grid.dataset.cardCount = String(count);
+        grid.dataset.tail = String(count % 3);
+      } else {
+        delete grid.dataset.cardCount;
+        delete grid.dataset.tail;
+      }
+    });
+  }
+
+  function resultDates() {
+    return uniqueSortedDates(state.fixtures.filter((fixture) => UI.isFinishedFixture(fixture) && UI.scoreAvailable(fixture)));
+  }
+
   function renderClock() {
     const el = UI.qs('#bstClock');
     if (el) el.textContent = `BST: ${formatBSTClock()}`;
@@ -128,6 +222,32 @@
     const teams = allTeams();
     select.innerHTML = '<option value="all">All results</option>' + teams.map((team) => `<option value="${UI.escapeHTML(team)}">${UI.escapeHTML(team)}</option>`).join('');
     select.value = state.resultTeam;
+  }
+
+  function renderResultDateSelect() {
+    const select = UI.qs('#resultDateFilter');
+    if (!select) return;
+    const dates = resultDates();
+    select.innerHTML = '<option value="all">All dates</option>' + dates.map((date) => `<option value="${UI.escapeHTML(date)}">${UI.escapeHTML(date)}</option>`).join('');
+    select.value = dates.includes(state.resultDate) ? state.resultDate : 'all';
+    if (select.value !== state.resultDate) state.resultDate = 'all';
+  }
+
+  function renderScheduleFilterSelects() {
+    const teamSelect = UI.qs('#scheduleTeamFilter');
+    const dateSelect = UI.qs('#scheduleDateFilter');
+    const teams = allTeams();
+    if (teamSelect) {
+      teamSelect.innerHTML = '<option value="all">All teams</option>' + teams.map((team) => `<option value="${UI.escapeHTML(team)}">${UI.escapeHTML(team)}</option>`).join('');
+      teamSelect.value = teams.includes(state.scheduleTeam) ? state.scheduleTeam : 'all';
+      if (teamSelect.value !== state.scheduleTeam) state.scheduleTeam = 'all';
+    }
+    if (dateSelect) {
+      const dates = uniqueSortedDates();
+      dateSelect.innerHTML = '<option value="all">All dates</option>' + dates.map((date) => `<option value="${UI.escapeHTML(date)}">${UI.escapeHTML(date)}</option>`).join('');
+      dateSelect.value = dates.includes(state.scheduleDate) ? state.scheduleDate : 'all';
+      if (dateSelect.value !== state.scheduleDate) state.scheduleDate = 'all';
+    }
   }
 
   function renderFollowedPicker() {
@@ -236,9 +356,10 @@
       .filter((fixture) => UI.isFinishedFixture(fixture) && UI.scoreAvailable(fixture))
       .sort((a, b) => fixtureDate(b) - fixtureDate(a));
     if (state.resultTeam !== 'all') results = results.filter((fixture) => hasTeam(fixture, state.resultTeam));
+    if (state.resultDate !== 'all') results = results.filter((fixture) => fixture.dateLabel === state.resultDate);
     el.innerHTML = results.length
       ? results.slice(0, 18).map((fixture) => UI.matchCard(fixture, { isFavourite: hasTeam(fixture, state.favouriteTeam) })).join('')
-      : UI.empty('No finished match result is available yet. Final scores will appear here after matches finish.');
+      : UI.empty('No finished match result is available for this filter yet. Final scores will appear here after matches finish.');
   }
 
   function filterFixtures() {
@@ -249,6 +370,8 @@
     if (state.filter === 'major') list = list.filter(hasFollowedTeam);
     if (state.filter === 'group') list = list.filter((fixture) => fixture.stage === 'Group Stage');
     if (state.filter === 'knockout') list = list.filter((fixture) => fixture.stage !== 'Group Stage');
+    if (state.scheduleTeam !== 'all') list = list.filter((fixture) => hasTeam(fixture, state.scheduleTeam));
+    if (state.scheduleDate !== 'all') list = list.filter((fixture) => fixture.dateLabel === state.scheduleDate);
     if (term) {
       list = list.filter((fixture) => {
         const hay = [fixture.homeTeam, fixture.awayTeam, fixture.stage, fixture.group ? `Group ${fixture.group}` : '', fixture.dateLabel, fixture.timeLabel, fixture.stadium, fixture.city, fixture.country, fixture.venueKey].join(' ').toLowerCase();
@@ -266,8 +389,10 @@
     const el = UI.qs('#scheduleList');
     if (!el) return;
     const filtered = filterFixtures();
+    applyScheduleExpansionMode(filtered);
     if (!filtered.length) {
       el.innerHTML = UI.empty('No matches found for this filter/search.');
+      updateScheduleToggleButton(filtered);
       return;
     }
     const groups = filtered.reduce((acc, fixture) => {
@@ -286,19 +411,59 @@
             <strong>${UI.escapeHTML(date)}</strong>
             <span>${fixtures.length} match${fixtures.length > 1 ? 'es' : ''} • ${UI.escapeHTML(stages)}</span>
           </button>
-          <div class="day-content">
+          <div class="day-content match-card-grid">
             ${fixtures.map((fixture) => UI.matchCard(fixture, { isFavourite: hasTeam(fixture, state.favouriteTeam) })).join('')}
           </div>
         </section>
       `;
     }).join('');
+    updateScheduleToggleButton(filtered);
+  }
+
+  function groupsFromAvailableData() {
+    if (state.groups && Object.keys(state.groups).length) return state.groups;
+    const derived = {};
+    state.fixtures.forEach((fixture) => {
+      if (!fixture.group || fixture.stage !== 'Group Stage') return;
+      if (!derived[fixture.group]) derived[fixture.group] = [];
+      [fixture.homeTeam, fixture.awayTeam].forEach((team) => {
+        const name = String(team || '').trim();
+        if (!name || /winner|runner|third|tbc|placeholder/i.test(name)) return;
+        if (!derived[fixture.group].includes(name)) derived[fixture.group].push(name);
+      });
+    });
+    return derived;
+  }
+
+  function blankStandingRows(groupMap) {
+    return Object.fromEntries(Object.entries(groupMap).map(([group, teams]) => [group, teams.map((team) => ({
+      team,
+      flag: state.flags[team] || 'un',
+      played: 0,
+      win: 0,
+      draw: 0,
+      loss: 0,
+      gf: 0,
+      ga: 0,
+      gd: 0,
+      points: 0,
+    }))]));
   }
 
   function renderStandings() {
-    const standings = STANDINGS.calculate(state.groups, state.flags, state.fixtures);
     const el = UI.qs('#standingsGrid');
     if (!el) return;
-    el.innerHTML = Object.entries(standings).map(([group, rows]) => `
+    const groupMap = groupsFromAvailableData();
+    const calculated = STANDINGS.calculate(groupMap, state.flags, state.fixtures);
+    const standings = Object.keys(calculated).length ? calculated : blankStandingRows(groupMap);
+    const entries = Object.entries(standings);
+
+    if (!entries.length) {
+      el.innerHTML = '<article class="standings-card standings-placeholder"><h3><span>Group Standings</span><span class="badge">Structure ready</span></h3><div class="empty-state">Group tables will appear here as soon as team or fixture data is available.</div></article>';
+      return;
+    }
+
+    el.innerHTML = entries.map(([group, rows]) => `
       <article class="standings-card">
         <h3><span>Group ${UI.escapeHTML(group)}</span><span class="badge">Top 2 + best 3rd</span></h3>
         <div class="table-wrap">
@@ -310,7 +475,7 @@
               ${rows.map((row, index) => `
                 <tr class="${index < 2 ? 'qualified-row' : ''}">
                   <td>${index + 1}</td>
-                  <td class="team-name-cell">${UI.teamLabel(row.team, row.flag)}</td>
+                  <td class="team-name-cell"><span class="standings-team-wrap">${UI.teamLabel(row.team, row.flag || state.flags[row.team] || 'un')}${index < 2 ? '<span class="qualification-badge">Q Zone</span>' : ''}</span></td>
                   <td>${row.played}</td><td>${row.win}</td><td>${row.draw}</td><td>${row.loss}</td>
                   <td>${row.gf}</td><td>${row.ga}</td><td>${row.gd > 0 ? '+' : ''}${row.gd}</td><td><strong>${row.points}</strong></td>
                 </tr>
@@ -320,6 +485,104 @@
         </div>
       </article>
     `).join('');
+  }
+
+  function stageOrderName(stage) {
+    const normalized = String(stage || '').toLowerCase();
+    if (normalized.includes('round of 32')) return 'Round of 32';
+    if (normalized.includes('round of 16')) return 'Round of 16';
+    if (normalized.includes('quarter')) return 'Quarterfinals';
+    if (normalized.includes('semi')) return 'Semifinals';
+    if (normalized.includes('third')) return 'Third Place';
+    if (normalized.includes('final')) return 'Final';
+    return stage || 'Knockout';
+  }
+
+  function winningTeam(fixture) {
+    if (!UI.scoreAvailable(fixture)) return '';
+    if (fixture.homeScore > fixture.awayScore) return fixture.homeTeam;
+    if (fixture.awayScore > fixture.homeScore) return fixture.awayTeam;
+    if (UI.penaltyAvailable(fixture)) {
+      if (fixture.homePenalty > fixture.awayPenalty) return fixture.homeTeam;
+      if (fixture.awayPenalty > fixture.homePenalty) return fixture.awayTeam;
+    }
+    return '';
+  }
+
+  function bracketTeamLine(fixture, side) {
+    const team = side === 'home' ? fixture.homeTeam : fixture.awayTeam;
+    const flag = side === 'home' ? fixture.homeFlag : fixture.awayFlag;
+    const score = side === 'home' ? fixture.homeScore : fixture.awayScore;
+    const winner = winningTeam(fixture);
+    const isWinner = winner && winner === team;
+    const isLoser = winner && winner !== team;
+    return `<div class="bracket-team ${isWinner ? 'is-winner' : ''} ${isLoser ? 'is-loser' : ''}">
+      <span>${UI.teamLabel(team, flag || state.flags[team] || 'un')}</span>
+      ${UI.scoreAvailable(fixture) ? `<strong>${UI.escapeHTML(score)}</strong>` : '<em>—</em>'}
+    </div>`;
+  }
+
+  function bracketPlaceholder(stage, index) {
+    const stagePrefix = {
+      'Round of 32': 'R32',
+      'Round of 16': 'R16',
+      Quarterfinals: 'QF',
+      Semifinals: 'SF',
+      Final: 'Final',
+      'Third Place': '3rd',
+    }[stage] || 'Match';
+    return `
+      <article class="bracket-match bracket-match--placeholder">
+        <div class="bracket-match-top"><span>${UI.escapeHTML(stagePrefix)} ${index + 1}</span><span>Date TBC</span></div>
+        <div class="bracket-team"><span class="team-label team-label--left"><span class="flag-placeholder"></span><span class="team-name-text">Team TBC</span></span><em>—</em></div>
+        <div class="bracket-team"><span class="team-label team-label--left"><span class="flag-placeholder"></span><span class="team-name-text">Team TBC</span></span><em>—</em></div>
+        <p>Venue TBC</p>
+      </article>`;
+  }
+
+  function renderBracket() {
+    const el = UI.qs('#bracketBoard');
+    if (!el) return;
+    const stages = ['Round of 32', 'Round of 16', 'Quarterfinals', 'Semifinals', 'Final', 'Third Place'];
+    const expectedSlots = {
+      'Round of 32': 16,
+      'Round of 16': 8,
+      Quarterfinals: 4,
+      Semifinals: 2,
+      Final: 1,
+      'Third Place': 1,
+    };
+    const knockouts = state.fixtures
+      .filter((fixture) => fixture.stage && fixture.stage !== 'Group Stage')
+      .sort((a, b) => fixtureDate(a) - fixtureDate(b));
+    const grouped = stages.reduce((acc, stage) => ({ ...acc, [stage]: [] }), {});
+    knockouts.forEach((fixture) => {
+      const stage = stageOrderName(fixture.stage);
+      if (!grouped[stage]) grouped[stage] = [];
+      grouped[stage].push(fixture);
+    });
+
+    el.innerHTML = stages.map((stage) => {
+      const fixtures = grouped[stage] || [];
+      const slots = Math.max(fixtures.length, expectedSlots[stage] || 1);
+      return `<section class="bracket-round bracket-round--${UI.escapeHTML(stage.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}">
+        <h3>${UI.escapeHTML(stage)}</h3>
+        <div class="bracket-round-list">
+          ${Array.from({ length: slots }, (_, index) => {
+            const fixture = fixtures[index];
+            if (!fixture) return bracketPlaceholder(stage, index);
+            return `
+              <article class="bracket-match match-card--${UI.statusLabel(fixture).kind}">
+                <div class="bracket-match-top"><span>Match ${UI.escapeHTML(fixture.matchNumber || index + 1)}</span><span>${UI.escapeHTML(UI.formatDateTime(fixture))}</span></div>
+                ${bracketTeamLine(fixture, 'home')}
+                ${bracketTeamLine(fixture, 'away')}
+                ${UI.penaltyLine(fixture)}
+                <p>${UI.escapeHTML(fixture.stadium || UI.fixtureVenue(fixture) || 'Venue TBC')}</p>
+              </article>`;
+          }).join('')}
+        </div>
+      </section>`;
+    }).join('');
   }
 
   function renderGroups() {
@@ -336,6 +599,7 @@
   }
 
   function renderCountdowns() {
+    applyMatchGridMeta();
     UI.qsa('[data-countdown]').forEach((el) => {
       const fixture = state.fixtures.find((item) => item.id === el.dataset.countdown);
       if (fixture) COUNTDOWN.renderGrid(fixture.kickoff, el, el.classList.contains('mini-countdown') || el.classList.contains('hero-mini-countdown'));
@@ -370,12 +634,20 @@
       const dayBtn = event.target.closest('[data-toggle-day]');
       if (dayBtn) {
         const day = dayBtn.dataset.toggleDay;
+        state.scheduleViewMode = 'custom';
         if (state.collapsedDays.has(day)) state.collapsedDays.delete(day);
         else state.collapsedDays.add(day);
         renderSchedule();
         renderCountdowns();
       }
     });
+  }
+
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.location.hash) {
+      history.replaceState(null, document.title, window.location.pathname + window.location.search);
+    }
   }
 
   function setupStaticEvents() {
@@ -403,6 +675,13 @@
     };
     updateStickyState();
     window.addEventListener('scroll', updateStickyState, { passive: true });
+
+    UI.qsa('.back-to-top, .brand').forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        scrollToTop();
+      });
+    });
 
     UI.qsa('#siteNav a').forEach((link) => {
       link.addEventListener('click', () => {
@@ -446,6 +725,12 @@
       renderCountdowns();
     });
 
+    UI.qs('#resultDateFilter').addEventListener('change', (event) => {
+      state.resultDate = event.target.value;
+      renderResults();
+      renderCountdowns();
+    });
+
     UI.qs('#scheduleSearch').addEventListener('input', (event) => {
       state.search = event.target.value;
       renderSchedule();
@@ -458,16 +743,44 @@
       renderCountdowns();
     });
 
-    UI.qs('#expandAllBtn').addEventListener('click', () => {
-      state.collapsedDays.clear();
+    UI.qs('#scheduleDateFilter').addEventListener('change', (event) => {
+      state.scheduleDate = event.target.value;
       renderSchedule();
       renderCountdowns();
     });
 
-    UI.qs('#collapseAllBtn').addEventListener('click', () => {
-      filterFixtures().forEach((fixture) => state.collapsedDays.add(dateGroupKey(fixture)));
+    UI.qs('#scheduleTeamFilter').addEventListener('change', (event) => {
+      state.scheduleTeam = event.target.value;
       renderSchedule();
+      renderCountdowns();
     });
+
+    UI.qs('#clearScheduleFiltersBtn').addEventListener('click', () => {
+      state.search = '';
+      state.filter = 'all';
+      state.scheduleTeam = 'all';
+      state.scheduleDate = 'all';
+      UI.qs('#scheduleSearch').value = '';
+      renderScheduleFilterSelects();
+      UI.qs('#stageFilter').value = 'all';
+      renderSchedule();
+      renderCountdowns();
+    });
+
+    const scheduleToggleBtn = UI.qs('#scheduleToggleBtn') || UI.qs('#expandAllBtn');
+    if (scheduleToggleBtn) {
+      scheduleToggleBtn.addEventListener('click', () => {
+        const filtered = filterFixtures();
+        const keys = groupedScheduleDates(filtered).map(([key]) => key);
+        const allExpanded = keys.length > 0 && keys.every((key) => !state.collapsedDays.has(key));
+        state.scheduleViewMode = allExpanded ? 'default' : 'expanded';
+        if (allExpanded) applyDefaultScheduleCollapse(filtered);
+        else state.collapsedDays.clear();
+        updateScheduleToggleButton(filtered);
+        renderSchedule();
+        renderCountdowns();
+      });
+    }
 
     UI.qs('#notifyEnableBtn').addEventListener('click', async () => {
       const status = await NOTIFY.requestPermission();
@@ -578,6 +891,8 @@
     renderClock();
     renderFavouriteSelect();
     renderResultTeamSelect();
+    renderResultDateSelect();
+    renderScheduleFilterSelects();
     renderHeroDashboard();
     renderFavourite();
     renderToday();
@@ -585,8 +900,9 @@
     renderScoreboard();
     renderResults();
     renderSchedule();
+    renderBracket();
     renderStandings();
-    renderGroups();
+    applyMatchGridMeta();
     renderCountdowns();
   }
 

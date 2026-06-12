@@ -2322,25 +2322,485 @@ html[data-theme="light"] .empty-chip-note {
   }
 }
 
-/* UI-only actual fix: favourite timeline cards use the full row width.
-   1 card = full width, 2 cards = 50% + 50%, 3 cards = 3 columns.
-   This targets only the Favourite Team timeline and does not affect other grids. */
-#favouriteTimeline.timeline {
-  width: 100%;
-  max-width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)) !important;
+/* =============================
+   Batch 3 UI/layout refinement
+   API-safe: CSS-only layout rules
+   ============================= */
+
+body {
+  font-family: "Mulish", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Universal match-card grid: 1 = full, 2 = 50/50, 3 = thirds, max 3 per row, final row fills. */
+.match-card-grid {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 16px !important;
   align-items: stretch;
 }
 
-#favouriteTimeline.timeline > .match-card,
-#favouriteTimeline.timeline > .timeline-item {
+.match-card-grid > .match-card {
+  grid-column: span 2;
   width: 100%;
+}
+
+.match-card-grid[data-tail="1"] > .match-card:last-child {
+  grid-column: span 6;
+}
+
+.match-card-grid[data-tail="2"] > .match-card:nth-last-child(-n + 2) {
+  grid-column: span 3;
+}
+
+.match-card-grid[data-card-count="1"] > .match-card:only-child {
+  grid-column: span 6;
+}
+
+.match-card-grid[data-card-count="2"] > .match-card {
+  grid-column: span 3;
+}
+
+.match-grid,
+.team-watch-grid,
+.scoreboard-list,
+.timeline,
+.day-content {
+  align-items: stretch;
+}
+
+.scoreboard-list.match-card-grid,
+.timeline.match-card-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+}
+
+/* Full schedule toolbar: search + date/team/stage filters */
+.schedule-toolbar {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.4fr) minmax(170px, 0.8fr) minmax(190px, 0.9fr) minmax(170px, 0.8fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.schedule-toolbar .chip-button {
+  min-height: 46px;
+  justify-content: center;
+}
+
+.result-filter-toolbar {
+  flex-wrap: wrap;
+}
+
+/* Standings: max two group cards per row on desktop for better table readability. */
+.standings-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+}
+
+.standings-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(circle at top left, rgba(33, 208, 122, 0.08), transparent 14rem),
+    linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.028));
+  overflow: hidden;
+}
+
+.standings-card .table-wrap {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.standings-card table {
+  min-width: 560px;
+}
+
+.standings-card th,
+.standings-card td {
+  padding: 10px 7px;
+}
+
+.standings-card .team-label {
+  max-width: 230px;
+}
+
+/* Bracket section */
+.bracket-scroll {
+  overflow-x: auto;
+  padding: 6px 0 16px;
+  scrollbar-width: thin;
+}
+
+.bracket-board {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(220px, 1fr));
+  gap: 16px;
+  min-width: 1380px;
+  align-items: start;
+}
+
+.bracket-round {
+  display: grid;
+  gap: 12px;
+}
+
+.bracket-round h3 {
+  position: sticky;
+  left: 0;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.075);
+  color: var(--primary-2);
+  text-align: center;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.bracket-round-list {
+  display: grid;
+  gap: 10px;
+}
+
+.bracket-match {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(247, 201, 72, 0.10), transparent 10rem),
+    linear-gradient(180deg, rgba(255,255,255,0.085), rgba(255,255,255,0.032));
+  overflow: hidden;
+}
+
+.bracket-match-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bracket-team {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.055);
+}
+
+.bracket-team .team-label {
+  font-size: 0.78rem;
+}
+
+.bracket-team strong,
+.bracket-team em {
+  font-style: normal;
+  font-weight: 1000;
+  color: var(--primary-2);
+}
+
+.bracket-team.is-winner .team-name-text {
+  font-weight: 1000;
+  color: var(--text);
+}
+
+.bracket-team.is-loser {
+  opacity: 0.58;
+}
+
+.bracket-team.is-loser .team-name-text {
+  text-decoration: line-through;
+}
+
+.bracket-match .penalty-line {
+  justify-self: center;
+  font-size: 0.72rem;
+}
+
+.bracket-match p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.bracket-empty {
+  min-height: 92px;
+  display: grid;
+  place-items: center;
+  font-size: 0.8rem;
+}
+
+/* Results and score labels should have enough room for full readable state names. */
+.score-stack {
+  min-width: 104px;
+}
+
+.score-stack small {
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.status-pill.status-finished,
+.status-pill.status-live {
+  white-space: nowrap;
+}
+
+/* Footer and translucent back-to-top button */
+.site-footer {
+  border-top: 1px solid var(--line);
+  margin-top: 54px;
+  padding: 28px 0 38px;
+}
+
+.site-footer strong {
+  color: var(--text);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px 16px;
+}
+
+.footer-links a {
+  color: var(--primary-2);
+  font-weight: 900;
+}
+
+.back-to-top {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(20, 56, 38, 0.32);
+  color: var(--primary-2);
+  opacity: 0;
+  pointer-events: none;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.18);
+  transition: opacity 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+html.is-scrolled .back-to-top {
+  opacity: 0.48;
+  pointer-events: auto;
+}
+
+.back-to-top:hover,
+.back-to-top:focus-visible {
+  opacity: 1 !important;
+  background: rgba(20, 56, 38, 0.82);
+  transform: translateY(-2px);
+}
+
+html[data-theme="light"] .back-to-top {
+  background: rgba(255, 255, 255, 0.48);
+  color: #0f6b3e;
+}
+
+/* Richer light mode contrast */
+html[data-theme="light"] .match-card,
+html[data-theme="light"] .bracket-match,
+html[data-theme="light"] .standings-card,
+html[data-theme="light"] .feature-match {
+  box-shadow: 0 18px 58px rgba(15, 77, 43, 0.11);
+}
+
+@media (max-width: 1180px) {
+  .schedule-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+  .schedule-toolbar .search-field,
+  .schedule-toolbar .chip-button {
+    grid-column: 1 / -1;
+  }
+  .standings-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 780px) {
+  .match-card-grid,
+  .scoreboard-list.match-card-grid,
+  .timeline.match-card-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .match-card-grid > .match-card,
+  .match-card-grid[data-tail="1"] > .match-card:last-child,
+  .match-card-grid[data-tail="2"] > .match-card:nth-last-child(-n + 2),
+  .match-card-grid[data-card-count="1"] > .match-card:only-child,
+  .match-card-grid[data-card-count="2"] > .match-card {
+    grid-column: 1 / -1;
+  }
+  .schedule-toolbar {
+    grid-template-columns: 1fr;
+  }
+  .bracket-board {
+    grid-template-columns: repeat(6, minmax(205px, 1fr));
+    min-width: 1280px;
+  }
+  .score-stack {
+    min-width: 76px;
+  }
+  .score-stack small {
+    font-size: 0.62rem;
+  }
+  .site-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .footer-links {
+    justify-content: flex-start;
+  }
+  .back-to-top {
+    right: 12px;
+    bottom: 12px;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Patch: schedule toggle + resilient bracket/standings placeholders */
+.flag-placeholder {
+  display: inline-block;
+  width: 22px;
+  height: 15px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.26), rgba(255,255,255,0.04)),
+    rgba(255,255,255,0.08);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  flex: 0 0 auto;
+}
+
+.bracket-match--placeholder {
+  border-style: dashed;
+  opacity: 0.86;
+}
+
+.bracket-match--placeholder .team-name-text,
+.bracket-match--placeholder em,
+.standings-placeholder .empty-state {
+  color: var(--muted);
+}
+
+#scheduleToggleBtn[aria-pressed="true"] {
+  border-color: rgba(247, 201, 72, 0.44);
+  color: var(--primary-2);
+}
+
+
+/* Final UI text/interaction patch: schedule toggle, back-to-top, and standings alignment */
+.qualified-row .team-name-cell::after {
+  content: none !important;
+}
+
+.standings-card table {
+  table-layout: fixed;
+}
+
+.standings-card th,
+.standings-card td {
+  text-align: center !important;
+  vertical-align: middle;
+}
+
+.standings-card th:nth-child(2),
+.standings-card td.team-name-cell {
+  text-align: left !important;
+}
+
+.standings-card th:first-child,
+.standings-card td:first-child {
+  width: 44px;
+}
+
+.standings-card th:nth-child(2),
+.standings-card td:nth-child(2) {
+  width: 210px;
+}
+
+.standings-team-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
 }
 
-@media (max-width: 720px) {
-  #favouriteTimeline.timeline {
-    grid-template-columns: 1fr !important;
+.standings-team-wrap .team-label {
+  min-width: 0;
+}
+
+.qualification-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(33, 208, 122, 0.28);
+  background: rgba(33, 208, 122, 0.10);
+  color: var(--primary);
+  font-size: 0.62rem;
+  font-weight: 1000;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.day-summary::after {
+  content: "+";
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--primary-2);
+  font-weight: 1000;
+}
+
+.day-block:not(.is-collapsed) .day-summary::after {
+  content: "−";
+}
+
+.back-to-top {
+  cursor: pointer;
+}
+
+@media (max-width: 780px) {
+  .standings-card table {
+    min-width: 600px;
+  }
+
+  .standings-card th:nth-child(2),
+  .standings-card td:nth-child(2) {
+    width: 190px;
   }
 }

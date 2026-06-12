@@ -124,8 +124,8 @@
     if (raw) {
       if (/^\d+$/.test(raw)) return `${raw}'`;
       const low = raw.toLowerCase();
-      if (low.includes('half') || low === 'ht') return 'HT';
-      if (low.includes('full') || low === 'ft') return 'FT';
+      if (low.includes('half') || low === 'ht') return 'Half-Time';
+      if (low.includes('full') || low === 'ft') return 'Full-time';
       if (low.includes('extra')) return 'ET';
       if (low.includes('pen')) return 'PENS';
       return raw.toUpperCase();
@@ -143,15 +143,15 @@
     const status = normalizedStatus(fixture);
     const minute = compactMinute(fixture);
     if (isLiveFixture(fixture)) {
-      if (['ht', 'halftime', 'half_time'].includes(status)) return { text: 'HT', detail: 'Half-time', className: 'status-live', kind: 'live' };
+      if (['ht', 'halftime', 'half_time'].includes(status)) return { text: 'Half-Time', detail: 'Half-Time', className: 'status-live', kind: 'live' };
       if (['et', 'extra_time'].includes(status)) return { text: minute || 'ET', detail: 'Extra time', className: 'status-live', kind: 'live' };
       if (['penalties', 'penalty'].includes(status)) return { text: 'PENS', detail: 'Penalty shootout', className: 'status-live', kind: 'live' };
       return { text: minute ? `${minute} LIVE` : 'LIVE', detail: 'Live now', className: 'status-live', kind: 'live' };
     }
     if (isFinishedFixture(fixture)) {
       if (['aet', 'after_extra_time'].includes(status)) return { text: 'AET', detail: 'After extra time', className: 'status-finished', kind: 'finished' };
-      if (['pen_finished', 'penalties_finished'].includes(status)) return { text: 'FT', detail: 'Decided on penalties', className: 'status-finished', kind: 'finished' };
-      return { text: 'FT', detail: 'Full-time', className: 'status-finished', kind: 'finished' };
+      if (['pen_finished', 'penalties_finished'].includes(status)) return { text: 'Full-time', detail: 'Decided on penalties', className: 'status-finished', kind: 'finished' };
+      return { text: 'Full-time', detail: 'Full-time', className: 'status-finished', kind: 'finished' };
     }
     return { text: 'Upcoming', detail: 'Scheduled', className: 'status-upcoming', kind: 'upcoming' };
   }
@@ -171,7 +171,7 @@
     if (status.kind === 'live' || status.kind === 'finished') {
       return `
         <span class="score-stack ${status.kind === 'live' ? 'score-stack--live' : 'score-stack--final'}">
-          <strong>${score || (status.kind === 'live' ? 'LIVE' : 'FT')}</strong>
+          <strong>${score || (status.kind === 'live' ? 'LIVE' : 'Full-time')}</strong>
           <small>${score ? escapeHTML(status.text) : 'Score pending'}</small>
           ${penaltyLine(fixture)}
         </span>
